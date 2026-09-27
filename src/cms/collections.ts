@@ -21,8 +21,11 @@ export const Users: CollectionConfig = {
   access: { create: isOwner, delete: isOwner, update: isOwner,
     read: ({ req }) => req.user?.active ? req.user.role === 'owner' ? true : { id: { equals: req.user.id } } : false },
   hooks: {
-    beforeOperation: [({ operation, req }) => {
-      if (operation === 'create' && !req.user && !req.context.bootstrapOwner) throw new APIError('Registration disabled.', 403);
+    beforeOperation: [async ({ operation, req }) => {
+      if (operation === 'create' && !req.user && !req.context.bootstrapOwner) {
+        const totalUsers = await req.payload.count({ collection: 'users', req });
+        if (totalUsers.totalDocs > 0) throw new APIError('Registration disabled.', 403);
+      }
     }],
     beforeLogin: [({ user }) => { if (!user.active) throw new APIError('Account disabled.', 403); }],
     beforeChange: [({ data, originalDoc, req }) => {
