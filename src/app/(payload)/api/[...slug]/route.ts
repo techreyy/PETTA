@@ -7,8 +7,12 @@ function guarded(handler: (request: Request, context: Context) => Promise<Respon
   return async (request: Request, context: Context) => {
     if (!cmsReady()) return Response.json({ message: 'CMS unavailable.' }, { status: 503 });
     const { slug = [] } = await context.params;
-    // Bootstrap is CLI-only; Payload's public first-user endpoint bypasses create access.
-    if (slug[0] === 'users' && slug[1] === 'first-register') return Response.json({ message: 'Registration disabled.' }, { status: 403 });
+    if (slug[0] === 'users' && slug[1] === 'first-register') {
+      const { getPayload } = await import('payload');
+      const payload = await getPayload({ config });
+      const count = await payload.count({ collection: 'users' });
+      if (count.totalDocs > 0) return Response.json({ message: 'Registration disabled.' }, { status: 403 });
+    }
     if (!['GET', 'HEAD', 'OPTIONS'].includes(request.method)) {
       const origin = request.headers.get('origin');
       const allowed = process.env.NEXT_PUBLIC_SITE_URL || new URL(request.url).origin;
