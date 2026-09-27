@@ -18,8 +18,16 @@ export const Users: CollectionConfig = {
   slug: 'users', admin: { useAsTitle: 'name' },
   auth: { tokenExpiration: 7200, maxLoginAttempts: 5, lockTime: 900000,
     cookies: { secure: process.env.NODE_ENV === 'production', sameSite: 'Lax' } },
-  access: { create: isOwner, delete: isOwner, update: isOwner,
-    read: ({ req }) => req.user?.active ? req.user.role === 'owner' ? true : { id: { equals: req.user.id } } : false },
+  access: {
+    create: async ({ req }) => {
+      if (req.user?.active === true && req.user.role === 'owner') return true;
+      const count = await req.payload.count({ collection: 'users', req });
+      return count.totalDocs === 0;
+    },
+    delete: isOwner,
+    update: isOwner,
+    read: ({ req }) => req.user?.active ? req.user.role === 'owner' ? true : { id: { equals: req.user.id } } : false
+  },
   hooks: {
     beforeOperation: [async ({ operation, req }) => {
       if (operation === 'create' && !req.user && !req.context.bootstrapOwner) {
