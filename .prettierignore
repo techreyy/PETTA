@@ -1,0 +1,7 @@
+node_modules
+.next
+.local
+media
+package-lock.json
+src/payload-types.ts
+src/migrations/*.json

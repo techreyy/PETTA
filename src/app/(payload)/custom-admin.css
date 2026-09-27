@@ -1,0 +1,183 @@
+/*
+ * Petta Desain Architectural Studio — Custom CMS Admin Theme
+ * Colors:
+ * - Canvas & Surfaces: #14191E (Obsidian Charcoal), #1C242C (Dark Slate), #242E38 (Hairline Border)
+ * - Accent: #6A9D94 (Architectural Sage Teal), #39756B, #7FB3AA
+ * - Text: #F9F8F6 (Parchment White), #A2AFBD (Muted Slate)
+ */
+
+:root {
+  --theme-bg: #14191E !important;
+  --theme-elevation-0: #14191E !important;
+  --theme-elevation-50: #182028 !important;
+  --theme-elevation-100: #1C242C !important;
+  --theme-elevation-150: #202A34 !important;
+  --theme-elevation-200: #242E38 !important;
+  --theme-elevation-250: #2C3844 !important;
+  --theme-elevation-300: #344250 !important;
+
+  --theme-text: #F9F8F6 !important;
+  --theme-text-muted: #A2AFBD !important;
+  --theme-border-color: #242E38 !important;
+
+  /* Accent colors */
+  --theme-success-500: #6A9D94 !important;
+  --theme-primary-50: #182422 !important;
+  --theme-primary-100: #1E3330 !important;
+  --theme-primary-500: #6A9D94 !important;
+  --theme-primary-600: #58877E !important;
+  --theme-primary-700: #39756B !important;
+}
+
+/* Overall Admin Background & Typography */
+body.payload-admin {
+  background-color: #14191E !important;
+  color: #F9F8F6 !important;
+  font-family: var(--font-jakarta), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  letter-spacing: -0.01em;
+}
+
+/* Nav & Sidebar */
+.app-header,
+.template-default__nav,
+.nav {
+  background-color: #14191E !important;
+  border-color: #242E38 !important;
+}
+
+.nav__group-label,
+.nav__link {
+  font-size: 13px !important;
+  letter-spacing: 0.02em !important;
+  transition: all 0.2s ease !important;
+}
+
+.nav__link:hover {
+  color: #6A9D94 !important;
+  background-color: rgba(106, 157, 148, 0.08) !important;
+  border-radius: 8px !important;
+}
+
+.nav__link--active {
+  color: #FFFFFF !important;
+  background-color: rgba(106, 157, 148, 0.16) !important;
+  border-left: 3px solid #6A9D94 !important;
+  font-weight: 500 !important;
+}
+
+/* Brand Header in Sidebar */
+.nav__brand {
+  padding: 24px 20px !important;
+  border-bottom: 1px solid #242E38 !important;
+}
+
+/* Cards & Tables */
+.card,
+.collection-list__wrap,
+.table {
+  background-color: #182028 !important;
+  border: 1px solid #242E38 !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+}
+
+.table th {
+  background-color: #14191E !important;
+  color: #6A9D94 !important;
+  font-size: 11px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.15em !important;
+  border-bottom: 1px solid #242E38 !important;
+}
+
+.table td {
+  border-bottom: 1px solid #242E38 !important;
+  font-size: 13px !important;
+}
+
+.table tr:hover td {
+  background-color: rgba(106, 157, 148, 0.04) !important;
+}
+
+/* Buttons */
+.btn {
+  border-radius: 9999px !important;
+  font-size: 12px !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  font-weight: 500 !important;
+  transition: all 0.25s ease !important;
+}
+
+.btn--style-primary {
+  background-color: #6A9D94 !important;
+  color: #14191E !important;
+  border: none !important;
+}
+
+.btn--style-primary:hover {
+  background-color: #7FB3AA !important;
+  box-shadow: 0 4px 14px rgba(106, 157, 148, 0.3) !important;
+}
+
+.btn--style-secondary {
+  background-color: transparent !important;
+  color: #F9F8F6 !important;
+  border: 1px solid #242E38 !important;
+}
+
+.btn--style-secondary:hover {
+  border-color: #6A9D94 !important;
+  color: #6A9D94 !important;
+}
+
+/* Form Inputs */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+textarea,
+select {
+  background-color: #14191E !important;
+  border: 1px solid #242E38 !important;
+  color: #F9F8F6 !important;
+  border-radius: 8px !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: #6A9D94 !important;
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(106, 157, 148, 0.2) !important;
+}
+
+/* Login Page Styling */
+.template-minimal {
+  background: radial-gradient(circle at top right, #1C242C, #14191E) !important;
+}
+
+.template-minimal__wrap {
+  background: rgba(24, 32, 40, 0.95) !important;
+  backdrop-filter: blur(16px) !important;
+  border: 1px solid #242E38 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4) !important;
+  padding: 40px !important;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #14191E;
+}
+::-webkit-scrollbar-thumb {
+  background: #242E38;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #6A9D94;
+}

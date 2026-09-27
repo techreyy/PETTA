@@ -1,26 +1,65 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /*
+   * Editorial Architectural "Moody Bright / Deep Luminescence" Palette:
+   * 1. Warm Off-White / Fine Rice Paper Canvas (#F9F8F6)
+   * 2. Deep Obsidian Charcoal Architecture Frame (#14191E)
+   * 3. Architectural Sage Teal (Brand Accent) (#6A9D94)
+   * 4. Horizon Copper Sand Accent (#C89975)
+   * 5. Fine Hairline Structural Divider (#E5E2DC)
+   * 6. Dark Slate Surface for Contrast Elements (#1A232B)
+   */
+  --color-canvas: #F9F8F6;
+  --color-surface-light: #FFFFFF;
+  --color-surface-dark: #14191E;
+  --color-teal: #6A9D94;
+  --color-copper: #C89975;
+  --color-text-dark: #14191E;
+  --color-text-muted: #6B7785;
+  --color-border: #E5E2DC;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-background: #F9F8F6;
+  --color-foreground: #14191E;
+  --font-sans: var(--font-jakarta);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #F9F8F6;
+  color: #14191E;
+  font-family: var(--font-jakarta), sans-serif;
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
 }
+
+/* Custom smooth transitions */
+::selection {
+  background: #14191E;
+  color: #6A9D94;
+}
+
+/* Restrained architectural scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #F9F8F6;
+}
+::-webkit-scrollbar-thumb {
+  background: #D4D0C8;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #14191E;
+}
+
+:focus-visible { outline: 2px solid #39756B; outline-offset: 4px; }
+.skip-link { position: fixed; top: -100px; left: 1rem; z-index: 100; background: white; padding: 1rem; }
+.skip-link:focus { top: 1rem; }
+.article-body p { margin-block: 1.2em; line-height: 1.8; }
+.article-body h2 { font-size: 1.8rem; margin-top: 2rem; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
+@media (hover: none) { .group .group-hover\:opacity-100 { opacity: 1; } }
