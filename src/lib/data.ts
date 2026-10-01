@@ -33,42 +33,42 @@ export const PORTFOLIO_CATEGORIES = [
   {
     title: "Private House",
     slug: "private-house",
-    count: 14,
+    count: 1,
     description: "Hunian privat eksklusif yang memadukan iklim tropis, ruang terbuka asri, dan ritme keseharian keluarga.",
     coverImage: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=80"
   },
   {
     title: "Masterplanning & Residential",
     slug: "masterplanning-residential",
-    count: 6,
+    count: 1,
     description: "Perencanaan kawasan terpadu, komplek institusi, dan perumahan ramah lingkungan yang beradaptasi dengan kontur alam.",
     coverImage: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1600&q=80"
   },
   {
     title: "Commercial Building",
     slug: "commercial-building",
-    count: 9,
+    count: 2,
     description: "Gedung perkantoran rektorat, ruko urban tropis, dan ruang komersial modern yang fungsional dan ikonik.",
     coverImage: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1600&q=80"
   },
   {
     title: "Interior Design",
     slug: "interior-design",
-    count: 18,
+    count: 1,
     description: "Interior eksekutif, ruang pimpinan kontemporer, dan tata ruang privat bernuansa hangat, presisi, dan elegan.",
     coverImage: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1600&q=80"
   },
   {
     title: "Architecture Installation",
     slug: "architecture-installation",
-    count: 5,
+    count: 1,
     description: "Eksplorasi tektonika fasad parametrik, gerbang landmark kawasan, dan instalasi spasial tematik.",
     coverImage: "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1600&q=80"
   },
   {
     title: "Hospitality",
     slug: "hospitality",
-    count: 8,
+    count: 1,
     description: "Hotel transit modern, resort villa tropis, dan destinasi rekreasi dengan pengalaman ruang yang berkesan.",
     coverImage: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1600&q=80"
   }

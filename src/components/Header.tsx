@@ -1,25 +1,54 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Menu, X, ChevronDown, ArrowUpRight } from "lucide-react";
 import { useProjects } from "@/lib/ProjectContext";
 import { useStudioSettings } from "@/lib/SettingsContext";
 import { PettaLogo } from "@/components/PettaLogo";
 
-
+/* Determine which nav key is active based on pathname */
+function getActiveNavKey(pathname: string): string | null {
+  if (pathname === "/") return "home";
+  if (pathname.startsWith("/portfolio")) return "projects";
+  if (pathname === "/services" || pathname.startsWith("/services/")) return "services";
+  if (pathname.startsWith("/awards")) return "awards";
+  if (pathname.startsWith("/news")) return "news";
+  if (pathname.startsWith("/about")) return "about";
+  if (pathname.startsWith("/contact")) return "contact";
+  return null;
+}
 
 export function Header() {
   const pathname = usePathname();
   return <HeaderContent key={pathname} />;
 }
 
+function NavUnderline({ isActive, navKey, activeKey }: { isActive: boolean; navKey: string; activeKey: string | null }) {
+  if (isActive && navKey === activeKey) {
+    return (
+      <motion.div
+        layoutId="activeNavUnderline"
+        className="absolute -bottom-1 left-0 right-0 h-[2.5px] bg-[#6A9D94] rounded-full shadow-[0_0_8px_rgba(106,157,148,0.5)]"
+        transition={{ type: "spring", stiffness: 380, damping: 30 }}
+      />
+    );
+  }
+  return (
+    <span className="absolute -bottom-1 left-0 right-0 h-[2px] bg-[#6A9D94] rounded-full scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
+  );
+}
+
 function HeaderContent() {
   const { categories } = useProjects();
   const { settings } = useStudioSettings();
-  const CATEGORY_ITEMS = categories.map(c => ({ name: c.title, href: `/portfolio/category/${c.slug}` }));
+  const CATEGORY_ITEMS = useMemo(
+    () => categories.map(c => ({ name: c.title, href: `/portfolio/category/${c.slug}` })),
+    [categories]
+  );
+  const reducedMotion = useReducedMotion();
   const mobileRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -28,12 +57,14 @@ function HeaderContent() {
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const activeKey = getActiveNavKey(pathname);
 
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 30);
     };
-    window.addEventListener("scroll", handleScroll);
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -65,16 +96,16 @@ function HeaderContent() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const isProjectsActive = pathname.startsWith("/portfolio");
+  const closeMobile = () => setIsOpen(false);
 
   return (
     <>
       <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-3 md:pt-4 px-4 pointer-events-none">
         <header
-          className={`pointer-events-auto w-full max-w-7xl transition-all duration-500 rounded-2xl border ${
-            scrolled
+          className={`pointer-events-auto w-full max-w-7xl transition-[background-color,border-color,box-shadow,padding] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none backdrop-blur-md rounded-2xl border ${
+            scrolled || isOpen
               ? "bg-[#14191E]/95 backdrop-blur-md border-[#242E38] py-3 px-6 md:px-8 shadow-2xl shadow-black/40"
-              : "bg-[#14191E]/85 backdrop-blur-sm py-4 px-6 md:px-8 border-[#242E38]/80 shadow-lg shadow-black/20"
+              : "bg-[#14191E]/70 py-4 px-6 md:px-8 border-white/10 shadow-lg shadow-black/10"
           }`}
         >
           <div className="flex items-center justify-between">
@@ -84,24 +115,16 @@ function HeaderContent() {
             </Link>
 
             {/* Desktop Navigation with Smooth Green Underline & Rounded Elements */}
-            <nav className="hidden lg:flex items-center space-x-8 text-[13.5px] font-normal tracking-wide">
+            <nav className="hidden lg:flex items-center space-x-4 xl:space-x-8 text-[13.5px] font-normal tracking-wide">
               {/* Home */}
               <Link
                 href="/"
                 className={`relative py-1.5 transition-colors duration-300 group ${
-                  pathname === "/" ? "text-[#FFFFFF] font-medium" : "text-[#A2AFBD] hover:text-[#FFFFFF]"
+                  activeKey === "home" ? "text-[#FFFFFF] font-medium" : "text-[#E1E7EC] hover:text-[#FFFFFF]"
                 }`}
               >
                 <span>Home</span>
-                {pathname === "/" ? (
-                  <motion.div
-                    layoutId="activeNavUnderline"
-                    className="absolute -bottom-1 left-0 right-0 h-[2.5px] bg-[#6A9D94] rounded-full shadow-[0_0_8px_rgba(106,157,148,0.5)]"
-                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                  />
-                ) : (
-                  <span className="absolute -bottom-1 left-0 right-0 h-[2px] bg-[#6A9D94] rounded-full scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
-                )}
+                <NavUnderline isActive={activeKey === "home"} navKey="home" activeKey={activeKey} />
               </Link>
 
               {/* Projects Dropdown Menu */}
@@ -117,7 +140,7 @@ function HeaderContent() {
                   onClick={() => setDropdownOpen((prev) => !prev)}
                   aria-expanded={dropdownOpen} aria-controls="project-navigation"
                   className={`flex items-center gap-1.5 py-1.5 transition-colors duration-300 cursor-pointer relative group ${
-                    isProjectsActive ? "text-[#FFFFFF] font-medium" : "text-[#A2AFBD] hover:text-[#FFFFFF]"
+                    activeKey === "projects" ? "text-[#FFFFFF] font-medium" : "text-[#E1E7EC] hover:text-[#FFFFFF]"
                   }`}
                 >
                   <span>Projects</span>
@@ -126,26 +149,18 @@ function HeaderContent() {
                       dropdownOpen ? "rotate-180 text-[#6A9D94]" : "text-[#A2AFBD] group-hover:text-[#6A9D94]"
                     }`}
                   />
-                  {isProjectsActive ? (
-                    <motion.div
-                      layoutId="activeNavUnderline"
-                      className="absolute -bottom-1 left-0 right-0 h-[2.5px] bg-[#6A9D94] rounded-full shadow-[0_0_8px_rgba(106,157,148,0.5)]"
-                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                    />
-                  ) : (
-                    <span className="absolute -bottom-1 left-0 right-0 h-[2px] bg-[#6A9D94] rounded-full scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
-                  )}
+                  <NavUnderline isActive={activeKey === "projects"} navKey="projects" activeKey={activeKey} />
                 </button>
 
                 {/* Dropdown Card with Rounded Corners & Subtle Green Accent Border */}
                 <AnimatePresence>
                   {dropdownOpen && (
                     <motion.div
-                      initial={{ opacity: 0, y: 10, scale: 0.96 }}
+                      initial={{ opacity: 0, y: reducedMotion ? 0 : 6, scale: reducedMotion ? 1 : 0.985 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 8, scale: 0.96 }}
-                      transition={{ duration: 0.22, ease: "easeOut" }}
-                      id="project-navigation" className="absolute top-full left-0 mt-0 w-64 bg-white text-[#2B3540] shadow-2xl rounded-xl py-3 border border-[#E5E2DC] z-50 text-left overflow-hidden ring-1 ring-black/5"
+                      exit={{ opacity: 0, y: reducedMotion ? 0 : 4, scale: reducedMotion ? 1 : 0.985 }}
+                      transition={{ duration: reducedMotion ? 0 : 0.28, ease: [0.22, 1, 0.36, 1] }}
+                      id="project-navigation" className="absolute top-full left-0 mt-0 w-64 bg-white text-[#2B3540] shadow-2xl rounded-xl py-3 border border-[#E5E2DC] z-50 text-left max-h-[calc(100dvh-8rem)] overflow-y-auto overscroll-contain ring-1 ring-black/5"
                     >
                       {/* Top subtle green accent indicator strip */}
                       <div className="h-[2px] w-full bg-[#6A9D94]/80 mb-1" />
@@ -173,80 +188,57 @@ function HeaderContent() {
                 </AnimatePresence>
               </div>
 
+              <Link
+                href="/services"
+                aria-current={activeKey === "services" ? "page" : undefined}
+                className={`relative py-1.5 transition-colors duration-300 group ${activeKey === "services" ? "text-[#FFFFFF] font-medium" : "text-[#E1E7EC] hover:text-[#FFFFFF]"}`}
+              >
+                <span>Services</span>
+                <NavUnderline isActive={activeKey === "services"} navKey="services" activeKey={activeKey} />
+              </Link>
+
               {/* Awards & Competitions */}
               <Link
                 href="/awards"
                 className={`relative py-1.5 transition-colors duration-300 group ${
-                  pathname.startsWith("/awards") ? "text-[#FFFFFF] font-medium" : "text-[#A2AFBD] hover:text-[#FFFFFF]"
+                  activeKey === "awards" ? "text-[#FFFFFF] font-medium" : "text-[#E1E7EC] hover:text-[#FFFFFF]"
                 }`}
               >
                 <span>Awards &amp; Sayembara</span>
-                {pathname.startsWith("/awards") ? (
-                  <motion.div
-                    layoutId="activeNavUnderline"
-                    className="absolute -bottom-1 left-0 right-0 h-[2.5px] bg-[#6A9D94] rounded-full shadow-[0_0_8px_rgba(106,157,148,0.5)]"
-                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                  />
-                ) : (
-                  <span className="absolute -bottom-1 left-0 right-0 h-[2px] bg-[#6A9D94] rounded-full scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
-                )}
+                <NavUnderline isActive={activeKey === "awards"} navKey="awards" activeKey={activeKey} />
               </Link>
 
               {/* What's On */}
               <Link
                 href="/news"
                 className={`relative py-1.5 transition-colors duration-300 group ${
-                  pathname.startsWith("/news") ? "text-[#FFFFFF] font-medium" : "text-[#A2AFBD] hover:text-[#FFFFFF]"
+                  activeKey === "news" ? "text-[#FFFFFF] font-medium" : "text-[#E1E7EC] hover:text-[#FFFFFF]"
                 }`}
               >
-                <span>What’s On</span>
-                {pathname.startsWith("/news") ? (
-                  <motion.div
-                    layoutId="activeNavUnderline"
-                    className="absolute -bottom-1 left-0 right-0 h-[2.5px] bg-[#6A9D94] rounded-full shadow-[0_0_8px_rgba(106,157,148,0.5)]"
-                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                  />
-                ) : (
-                  <span className="absolute -bottom-1 left-0 right-0 h-[2px] bg-[#6A9D94] rounded-full scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
-                )}
+                <span>What&apos;s On</span>
+                <NavUnderline isActive={activeKey === "news"} navKey="news" activeKey={activeKey} />
               </Link>
 
               {/* About Us */}
               <Link
                 href="/about"
                 className={`relative py-1.5 transition-colors duration-300 group ${
-                  pathname.startsWith("/about") ? "text-[#FFFFFF] font-medium" : "text-[#A2AFBD] hover:text-[#FFFFFF]"
+                  activeKey === "about" ? "text-[#FFFFFF] font-medium" : "text-[#E1E7EC] hover:text-[#FFFFFF]"
                 }`}
               >
                 <span>About Us</span>
-                {pathname.startsWith("/about") ? (
-                  <motion.div
-                    layoutId="activeNavUnderline"
-                    className="absolute -bottom-1 left-0 right-0 h-[2.5px] bg-[#6A9D94] rounded-full shadow-[0_0_8px_rgba(106,157,148,0.5)]"
-                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                  />
-                ) : (
-                  <span className="absolute -bottom-1 left-0 right-0 h-[2px] bg-[#6A9D94] rounded-full scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
-                )}
+                <NavUnderline isActive={activeKey === "about"} navKey="about" activeKey={activeKey} />
               </Link>
 
               {/* Contact Us */}
               <Link
                 href="/contact"
                 className={`relative py-1.5 transition-colors duration-300 group ${
-                  pathname.startsWith("/contact") ? "text-[#FFFFFF] font-medium" : "text-[#A2AFBD] hover:text-[#FFFFFF]"
+                  activeKey === "contact" ? "text-[#FFFFFF] font-medium" : "text-[#E1E7EC] hover:text-[#FFFFFF]"
                 }`}
               >
                 <span>Contact Us</span>
-                {pathname.startsWith("/contact") ? (
-                  <motion.div
-                    layoutId="activeNavUnderline"
-                    className="absolute -bottom-1 left-0 right-0 h-[2.5px] bg-[#6A9D94] rounded-full shadow-[0_0_8px_rgba(106,157,148,0.5)]"
-                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                  />
-                ) : (
-                  <span className="absolute -bottom-1 left-0 right-0 h-[2px] bg-[#6A9D94] rounded-full scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
-                )}
+                <NavUnderline isActive={activeKey === "contact"} navKey="contact" activeKey={activeKey} />
               </Link>
             </nav>
 
@@ -279,19 +271,20 @@ function HeaderContent() {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: reducedMotion ? 0 : -12 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            exit={{ opacity: 0, y: reducedMotion ? 0 : -8 }}
+            transition={{ duration: reducedMotion ? 0 : 0.35, ease: [0.22, 1, 0.36, 1] }}
             ref={mobileRef} id="mobile-navigation" role="dialog" aria-modal="true" aria-label="Navigasi utama"
-            className="fixed inset-0 z-40 bg-[#14191E]/98 backdrop-blur-xl pt-28 px-8 flex flex-col justify-between pb-12 lg:hidden border-b border-[#242E38] overflow-y-auto"
+            className="fixed inset-0 z-40 bg-[#14191E]/98 backdrop-blur-xl pt-28 px-8 flex flex-col justify-between gap-10 pb-12 lg:hidden border-b border-[#242E38] overflow-y-auto"
           >
-            <div className="flex flex-col space-y-6">
-              <button onClick={() => setIsOpen(false)} className="self-end p-2" aria-label="Tutup navigasi"><X /></button>
+            <div className="flex flex-col shrink-0 space-y-6">
+              <button onClick={closeMobile} className="self-end p-2" aria-label="Tutup navigasi"><X /></button>
               <Link
                 href="/"
+                onClick={closeMobile}
                 className={`text-xl tracking-wider uppercase font-light ${
-                  pathname === "/" ? "text-[#6A9D94] font-medium" : "text-[#A2AFBD]"
+                  activeKey === "home" ? "text-[#6A9D94] font-medium" : "text-[#A2AFBD]"
                 }`}
               >
                 Home
@@ -300,10 +293,10 @@ function HeaderContent() {
               {/* Mobile Projects Accordion */}
               <div>
                 <button
-                  aria-expanded={mobileProjectsOpen}
+                  aria-expanded={mobileProjectsOpen} aria-controls="mobile-project-navigation"
                   onClick={() => setMobileProjectsOpen(!mobileProjectsOpen)}
                   className={`w-full flex items-center justify-between text-xl tracking-wider uppercase font-light ${
-                    isProjectsActive ? "text-[#6A9D94] font-medium" : "text-[#A2AFBD]"
+                    activeKey === "projects" ? "text-[#6A9D94] font-medium" : "text-[#A2AFBD]"
                   }`}
                 >
                   <span>Projects</span>
@@ -311,10 +304,11 @@ function HeaderContent() {
                 </button>
 
                 {mobileProjectsOpen && (
-                  <div className="pl-4 pt-3 space-y-3 border-l-2 border-[#6A9D94]/40 mt-3">
+                  <div id="mobile-project-navigation" className="pl-4 pt-3 space-y-1 border-l-2 border-[#6A9D94]/40 mt-3">
                     <Link
                       href="/portfolio"
-                      className="block text-sm text-[#F4F3EF] hover:text-[#6A9D94]"
+                      onClick={closeMobile}
+                      className="block py-3 text-sm text-[#F4F3EF] hover:text-[#6A9D94]"
                     >
                       All Disciplines
                     </Link>
@@ -322,7 +316,8 @@ function HeaderContent() {
                       <Link
                         key={item.name}
                         href={item.href}
-                        className="block text-sm text-[#8E9BA5] hover:text-[#6A9D94]"
+                        onClick={closeMobile}
+                        className="block py-3 text-sm text-[#8E9BA5] hover:text-[#6A9D94]"
                       >
                         {item.name}
                       </Link>
@@ -332,9 +327,19 @@ function HeaderContent() {
               </div>
 
               <Link
+                href="/services"
+                onClick={closeMobile}
+                aria-current={activeKey === "services" ? "page" : undefined}
+                className={`text-xl tracking-wider uppercase font-light ${activeKey === "services" ? "text-[#6A9D94] font-medium" : "text-[#A2AFBD]"}`}
+              >
+                Services
+              </Link>
+
+              <Link
                 href="/awards"
+                onClick={closeMobile}
                 className={`text-xl tracking-wider uppercase font-light ${
-                  pathname.startsWith("/awards") ? "text-[#6A9D94] font-medium" : "text-[#A2AFBD]"
+                  activeKey === "awards" ? "text-[#6A9D94] font-medium" : "text-[#A2AFBD]"
                 }`}
               >
                 Awards &amp; Sayembara
@@ -342,17 +347,19 @@ function HeaderContent() {
 
               <Link
                 href="/news"
+                onClick={closeMobile}
                 className={`text-xl tracking-wider uppercase font-light ${
-                  pathname.startsWith("/news") ? "text-[#6A9D94] font-medium" : "text-[#A2AFBD]"
+                  activeKey === "news" ? "text-[#6A9D94] font-medium" : "text-[#A2AFBD]"
                 }`}
               >
-                What’s On
+                What&apos;s On
               </Link>
 
               <Link
                 href="/about"
+                onClick={closeMobile}
                 className={`text-xl tracking-wider uppercase font-light ${
-                  pathname.startsWith("/about") ? "text-[#6A9D94] font-medium" : "text-[#A2AFBD]"
+                  activeKey === "about" ? "text-[#6A9D94] font-medium" : "text-[#A2AFBD]"
                 }`}
               >
                 About Us
@@ -360,19 +367,21 @@ function HeaderContent() {
 
               <Link
                 href="/contact"
+                onClick={closeMobile}
                 className={`text-xl tracking-wider uppercase font-light ${
-                  pathname.startsWith("/contact") ? "text-[#6A9D94] font-medium" : "text-[#A2AFBD]"
+                  activeKey === "contact" ? "text-[#6A9D94] font-medium" : "text-[#A2AFBD]"
                 }`}
               >
                 Contact Us
               </Link>
             </div>
 
-            <div className="border-t border-[#242E38] pt-6 space-y-4">
+            <div className="shrink-0 border-t border-[#242E38] pt-6 space-y-4">
               <p className="text-xs uppercase tracking-widest text-[#A2AFBD]">Kendari · Sulawesi Tenggara</p>
               <p className="text-sm font-light text-[#FFFFFF]">{settings.email}</p>
               <Link
                 href="/contact"
+                onClick={closeMobile}
                 className="w-full flex items-center justify-center py-3.5 bg-[#6A9D94] text-[#14191E] text-xs tracking-widest uppercase font-semibold mt-4 rounded-xl"
               >
                 Start a Conversation

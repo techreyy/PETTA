@@ -18,18 +18,20 @@
   --color-text-dark: #14191E;
   --color-text-muted: #6B7785;
   --color-border: #E5E2DC;
+  --font-jakarta: var(--font-dm-sans);
 }
 
 @theme inline {
   --color-background: #F9F8F6;
   --color-foreground: #14191E;
-  --font-sans: var(--font-jakarta);
+  --font-sans: var(--font-dm-sans), sans-serif;
+  --font-serif: var(--font-cormorant), Georgia, serif;
 }
 
 body {
   background-color: #F9F8F6;
   color: #14191E;
-  font-family: var(--font-jakarta), sans-serif;
+  font-family: var(--font-dm-sans), sans-serif;
   letter-spacing: -0.01em;
   -webkit-font-smoothing: antialiased;
 }

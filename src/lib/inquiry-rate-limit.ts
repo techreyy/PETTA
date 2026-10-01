@@ -3,6 +3,7 @@ import { Pool } from 'pg';
 
 let pool: Pool | undefined;
 export async function reserveInquiry(email: string, ip?: string) {
+  if (!process.env.PAYLOAD_SECRET) throw new Error('PAYLOAD_SECRET is not configured');
   pool ??= new Pool({ connectionString: process.env.DATABASE_URI, max: 3, connectionTimeoutMillis: 5000 });
   const hash = (value: string) => createHmac('sha256', process.env.PAYLOAD_SECRET!).update(value).digest('hex');
   const limits: [string, number][] = [['global', 100], [hash(`email:${email}`), 3]];

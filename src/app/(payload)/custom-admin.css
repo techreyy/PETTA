@@ -15,6 +15,14 @@
   --theme-elevation-200: #242E38 !important;
   --theme-elevation-250: #2C3844 !important;
   --theme-elevation-300: #344250 !important;
+  /* Keep labels and dropdown text readable even when the account prefers light mode. */
+  --theme-elevation-400: #687C8E !important;
+  --theme-elevation-500: #8FA1B0 !important;
+  --theme-elevation-600: #A2AFBD !important;
+  --theme-elevation-700: #C4CDD4 !important;
+  --theme-elevation-800: #DBE1E6 !important;
+  --theme-elevation-900: #EEF0F2 !important;
+  --theme-elevation-1000: #F9F8F6 !important;
 
   --theme-text: #F9F8F6 !important;
   --theme-text-muted: #A2AFBD !important;
@@ -65,6 +73,22 @@ body.payload-admin {
   font-weight: 500 !important;
 }
 
+/* Keep relationship help inside the form at the right edge of the viewport. */
+.relationship-add-new__tooltip {
+  left: auto !important;
+  right: 0 !important;
+  transform: none !important;
+}
+
+.field-description,
+.tabs-field__description {
+  color: #A2AFBD !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
+
 /* Brand Header in Sidebar */
 .nav__brand {
   padding: 24px 20px !important;
@@ -78,7 +102,6 @@ body.payload-admin {
   background-color: #182028 !important;
   border: 1px solid #242E38 !important;
   border-radius: 12px !important;
-  overflow: hidden !important;
 }
 
 .table th {
@@ -103,8 +126,8 @@ body.payload-admin {
 .btn {
   border-radius: 9999px !important;
   font-size: 12px !important;
-  letter-spacing: 0.08em !important;
-  text-transform: uppercase !important;
+  letter-spacing: 0.01em !important;
+  text-transform: none !important;
   font-weight: 500 !important;
   transition: all 0.25s ease !important;
 }

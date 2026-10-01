@@ -10,7 +10,17 @@ uri.pathname = `/${name}`;
 let code = 1;
 try {
   code = await new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, ['--import', 'tsx', '--test', '--test-force-exit', 'tests/inquiry-validation.test.ts', 'tests/cms.test.ts'], {
+    const child = spawn(process.execPath, [
+      '--import', 'tsx', '--test', '--test-force-exit',
+      'tests/inquiry-validation.test.ts',
+      'tests/cms.test.ts',
+      'tests/related-projects.test.ts',
+      'tests/structured-data.test.ts',
+      'tests/inquiry-notification.test.ts',
+      'tests/project-import.test.ts',
+      'tests/project-status.test.ts',
+      'tests/services-access.test.ts'
+    ], {
       stdio: 'inherit', env: { ...process.env, DATABASE_URI: uri.href, PETTA_TEST_DATABASE: name, PAYLOAD_MIGRATING: 'true' }, windowsHide: true,
     });
     child.on('error', reject);

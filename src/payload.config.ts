@@ -5,13 +5,18 @@ import { postgresAdapter } from '@payloadcms/db-postgres';
 import { lexicalEditor } from '@payloadcms/richtext-lexical';
 import { s3Storage } from '@payloadcms/storage-s3';
 import sharp from 'sharp';
+import { id } from '@payloadcms/translations/languages/id';
+import { en } from '@payloadcms/translations/languages/en';
+import { adminCollection, adminFields } from './cms/admin-presentation';
 import { Categories, Inquiries, Media, News, Projects, Users, Team, Awards, Competitions } from './cms/collections';
+import { BrandLogos, Services } from './cms/editorial';
 import { isOwner } from './cms/access';
 import { STUDIO_INFO } from './lib/data';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default buildConfig({
+  i18n: { supportedLanguages: { id, en }, fallbackLanguage: 'id' },
   secret: process.env.PAYLOAD_SECRET || '',
   serverURL: process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
   admin: {
@@ -29,11 +34,11 @@ export default buildConfig({
     sendEmail: async () => { throw new Error('Email delivery is not configured. Contact the studio owner for account recovery.'); } }),
   typescript: { outputFile: path.resolve(dirname, 'payload-types.ts') },
   upload: { limits: { fileSize: 10 * 1024 * 1024 }, abortOnLimit: true },
-  collections: [Users, Media, Categories, Projects, News, Team, Inquiries, Awards, Competitions],
-  globals: [{ slug: 'siteSettings', access: { read: () => true, update: isOwner }, fields: [
+  collections: [Projects, Categories, News, Services, Awards, Competitions, Media, Team, BrandLogos, Inquiries, Users].map(adminCollection),
+  globals: [{ slug: 'siteSettings', label: 'Profil & Kontak Studio', admin: { group: 'Identitas Studio', description: 'Ubah identitas, kontak, media sosial dan logo studio. Pengaturan ini hanya dapat diubah oleh pemilik.' }, access: { read: () => true, update: isOwner }, fields: adminFields([
     ...Object.entries(STUDIO_INFO).map(([name, defaultValue]) => ({ name, type: 'text' as const, defaultValue, required: true })),
     { name: 'logo', type: 'upload', relationTo: 'media' },
-  ] }],
+  ]) }],
   cors: [process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'],
   csrf: [process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'],
   plugins: process.env.S3_BUCKET ? [s3Storage({

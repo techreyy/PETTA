@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Trophy, Award, Landmark, MapPin, Calendar, CheckCircle2, Sparkles, Building2 } from "lucide-react";
+import { motion } from "framer-motion";
+import { Trophy, Award, Landmark, MapPin, CheckCircle2, Sparkles, Building2 } from "lucide-react";
 import { useProjects } from "@/lib/ProjectContext";
 import Link from "next/link";
 
@@ -79,6 +79,11 @@ export default function AwardsPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {awards.length === 0 && (
+                <p className="col-span-full py-8 text-sm text-[#53606E]">
+                  Belum ada penghargaan yang ditampilkan.
+                </p>
+              )}
               {awards.map((award, idx) => (
                 <motion.div
                   key={award.id}
@@ -117,10 +122,7 @@ export default function AwardsPage() {
                     </p>
                   </div>
 
-                  <div className="pt-6 mt-6 border-t border-[#F0EFEB] flex items-center justify-between text-[11px]">
-                    <span className="text-[#39756B] font-mono tracking-wider uppercase">Terverifikasi IAI</span>
-                    <span className="text-[#6B7785]">Petta Desain Official</span>
-                  </div>
+
                 </motion.div>
               ))}
             </div>
@@ -143,6 +145,11 @@ export default function AwardsPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {competitions.length === 0 && (
+                <p className="col-span-full py-8 text-sm text-[#53606E]">
+                  Belum ada sayembara yang ditampilkan.
+                </p>
+              )}
               {competitions.map((comp, idx) => (
                 <motion.div
                   key={comp.id}

@@ -7,8 +7,6 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { ProjectCard } from "@/components/ProjectCard";
 
-
-
 interface CategoryPageProps {
   params: Promise<{
     slug: string;

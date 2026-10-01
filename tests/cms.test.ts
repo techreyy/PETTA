@@ -33,10 +33,26 @@ test('real PostgreSQL: permissions, drafts, gallery preservation and contact per
       await assert.rejects(payload.update({ collection: 'projects', id: project.id, user: editorUser, overrideAccess: false, data: { _status: 'published' } }));
       await assert.rejects(payload.updateGlobal({ slug: 'siteSettings', user: editorUser, overrideAccess: false, data: { phone: '1234' } }));
     });
+    await t.test('media used by an inactive brand logo cannot be deleted', async () => {
+      const sharp = (await import('sharp')).default;
+      const data = await sharp({ create: { width: 8, height: 8, channels: 3, background: '#ffffff' } }).png().toBuffer();
+      const media = await payload.create({ collection: 'media', data: { alt: 'Protected partner logo' }, file: { data, mimetype: 'image/png', name: 'protected-partner.png', size: data.length } });
+      const logo = await payload.create({ collection: 'brandLogos', data: { name: 'Hidden partner', group: 'client', logo: media.id, active: false } });
+      await assert.rejects(payload.delete({ collection: 'media', id: media.id, user: ownerUser, overrideAccess: false }), /referenced by content/);
+      await payload.delete({ collection: 'brandLogos', id: logo.id });
+      await payload.delete({ collection: 'media', id: media.id });
+    });
     await t.test('editing title preserves every gallery image and the slug', async () => {
       const edited = await payload.update({ collection: 'projects', id: project.id, user: ownerUser, overrideAccess: false, data: { title: 'Updated title' } });
       assert.deepEqual(edited.gallery?.map(row => row.imageUrl), ['/one.jpg', '/two.jpg']);
       assert.equal(edited.slug, 'gallery-test');
+    });
+    await t.test('new project generates an address and category versions block deletion', async () => {
+      const originalCategory = await payload.create({ collection: 'portfolioCategories', data: { title: 'Version category', slug: 'version-category', description: 'Version protection' } });
+      const automatic = await payload.create({ collection: 'projects', user: ownerUser, overrideAccess: false, data: { title: 'Rumah Tropis Baru', slug: '', category: originalCategory.id, _status: 'published' } });
+      assert.equal(automatic.slug, 'rumah-tropis-baru');
+      await payload.update({ collection: 'projects', id: automatic.id, user: ownerUser, overrideAccess: false, data: { category: category.id } });
+      await assert.rejects(payload.delete({ collection: 'portfolioCategories', id: originalCategory.id, user: ownerUser, overrideAccess: false }), /saved version references/);
     });
     await t.test('editor drafts do not leak into public reads', async () => {
       const draft = await payload.create({ collection: 'projects', user: editorUser, overrideAccess: false, draft: true, data: { title: 'Private draft', slug: 'private-draft', category: category.id } });

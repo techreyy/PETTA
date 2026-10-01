@@ -6,7 +6,9 @@ import { reserveInquiry } from '@/lib/inquiry-rate-limit';
 
 export const runtime = 'nodejs';
 export async function POST(request: Request) {
-  const allowed = new URL(process.env.NEXT_PUBLIC_SITE_URL || request.url).origin;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  if (!siteUrl) return Response.json({ error: 'Konfigurasi server belum lengkap.' }, { status: 500 });
+  const allowed = new URL(siteUrl).origin;
   if (request.headers.get('origin') !== allowed) return Response.json({ error: 'Permintaan tidak diizinkan.' }, { status: 403 });
   let body: unknown;
   try { body = await readLimitedJSON(request); }

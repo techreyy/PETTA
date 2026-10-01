@@ -3,6 +3,7 @@
 import React from "react";
 import { getContent, getProject } from "@/lib/content";
 import { pageMetadata } from "@/lib/seo";
+import { relatedProjects } from "@/lib/related-projects";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -31,7 +32,8 @@ export default async function ProjectDetailPage({ params }: ProjectDetailProps) 
   }
 
   // Related projects
-  const related = projects.filter((p) => p.slug !== slug).slice(0, 2);
+  const related = relatedProjects(projects, project);
+  const gallery = project.gallery?.length ? project.gallery : [project.heroImage];
 
   return (
     <article className="pt-28 pb-36 bg-[#F9F8F6] text-[#14191E]">
@@ -129,11 +131,11 @@ export default async function ProjectDetailPage({ params }: ProjectDetailProps) 
             <h3 className="text-xs uppercase tracking-[0.3em] text-[#39756B] font-semibold">
               Photographic Monograph & Spatial Documentation
             </h3>
-            <span className="text-xs font-mono text-[#6B7785]">{project.gallery?.length || 1} Plates</span>
+            <span className="text-xs font-mono text-[#6B7785]">{gallery.length} Plates</span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {(project.gallery || [project.heroImage]).map((img, idx) => (
+            {gallery.map((img, idx) => (
               <div
                 key={idx}
                 className={`relative overflow-hidden bg-[#14191E] border border-[#E5E2DC] shadow-sm ${
@@ -144,7 +146,7 @@ export default async function ProjectDetailPage({ params }: ProjectDetailProps) 
                   src={img}
                   alt={`${project.title} gallery plate ${idx + 1}`}
                   fill
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 100vw"
+                  sizes={idx % 3 === 0 ? "(max-width: 1280px) 100vw, 1184px" : "(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 576px"}
                   className="object-cover hover:scale-105 transition-transform duration-700 ease-[0.16,1,0.3,1]"
                 />
               </div>

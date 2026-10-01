@@ -2,6 +2,8 @@ import * as migration_20260927_084155_initial_cms from './20260927_084155_initia
 import * as migration_20260927_090000_contact_limits from './20260927_090000_contact_limits';
 import * as migration_20260927_090057_team from './20260927_090057_team';
 import * as migration_20260927_094500_awards_competitions from './20260927_094500_awards_competitions';
+import * as migration_20260929_161232_brand_logos from './20260929_161232_brand_logos';
+import * as migration_20260930_183907_services from './20260930_183907_services';
 
 export const migrations = [
   {
@@ -17,11 +19,21 @@ export const migrations = [
   {
     up: migration_20260927_090057_team.up,
     down: migration_20260927_090057_team.down,
-    name: '20260927_090057_team'
+    name: '20260927_090057_team',
   },
   {
     up: migration_20260927_094500_awards_competitions.up,
     down: migration_20260927_094500_awards_competitions.down,
-    name: '20260927_094500_awards_competitions'
+    name: '20260927_094500_awards_competitions',
+  },
+  {
+    up: migration_20260929_161232_brand_logos.up,
+    down: migration_20260929_161232_brand_logos.down,
+    name: '20260929_161232_brand_logos',
+  },
+  {
+    up: migration_20260930_183907_services.up,
+    down: migration_20260930_183907_services.down,
+    name: '20260930_183907_services'
   },
 ];

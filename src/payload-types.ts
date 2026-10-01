@@ -67,15 +67,17 @@ export interface Config {
   };
   blocks: {};
   collections: {
-    users: User;
-    media: Media;
-    portfolioCategories: PortfolioCategory;
     projects: Project;
+    portfolioCategories: PortfolioCategory;
     news: News;
-    team: Team;
-    inquiries: Inquiry;
+    services: Service;
     awards: Award;
     competitions: Competition;
+    media: Media;
+    team: Team;
+    brandLogos: BrandLogo;
+    inquiries: Inquiry;
+    users: User;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -83,15 +85,17 @@ export interface Config {
   };
   collectionsJoins: {};
   collectionsSelect: {
-    users: UsersSelect<false> | UsersSelect<true>;
-    media: MediaSelect<false> | MediaSelect<true>;
-    portfolioCategories: PortfolioCategoriesSelect<false> | PortfolioCategoriesSelect<true>;
     projects: ProjectsSelect<false> | ProjectsSelect<true>;
+    portfolioCategories: PortfolioCategoriesSelect<false> | PortfolioCategoriesSelect<true>;
     news: NewsSelect<false> | NewsSelect<true>;
-    team: TeamSelect<false> | TeamSelect<true>;
-    inquiries: InquiriesSelect<false> | InquiriesSelect<true>;
+    services: ServicesSelect<false> | ServicesSelect<true>;
     awards: AwardsSelect<false> | AwardsSelect<true>;
     competitions: CompetitionsSelect<false> | CompetitionsSelect<true>;
+    media: MediaSelect<false> | MediaSelect<true>;
+    team: TeamSelect<false> | TeamSelect<true>;
+    brandLogos: BrandLogosSelect<false> | BrandLogosSelect<true>;
+    inquiries: InquiriesSelect<false> | InquiriesSelect<true>;
+    users: UsersSelect<false> | UsersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -136,40 +140,111 @@ export interface UserAuthOperations {
   };
 }
 /**
+ * Isi informasi utama, tambahkan foto, lalu simpan draf atau terbitkan sesuai hak akses Anda.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "users".
+ * via the `definition` "projects".
  */
-export interface User {
+export interface Project {
   id: number;
-  name: string;
-  role: 'owner' | 'admin' | 'editor';
+  title: string;
+  /**
+   * Otomatis dari judul saat disimpan jika dikosongkan. Bisa diisi sendiri, misalnya rumah-tropis. Jangan ubah alamat yang sudah dibagikan.
+   */
+  slug: string;
+  category: number | PortfolioCategory;
+  location?: string | null;
+  year?: string | null;
+  /**
+   * Pilih status sesuai kondisi proyek. Nilai lama tetap dipertahankan.
+   */
+  status?: string | null;
+  shortIntro?: string | null;
+  architectInCharge?: string | null;
+  siteArea?: string | null;
+  constructedArea?: string | null;
+  stories?: string | null;
+  description?:
+    | {
+        paragraph: string;
+        id?: string | null;
+      }[]
+    | null;
+  heroImage?: (number | null) | Media;
+  /**
+   * Utamakan unggah atau pilih foto di atas. Tautan ini dipakai hanya jika foto unggahan belum dipilih.
+   */
+  heroImageUrl?: string | null;
+  /**
+   * Tambahkan foto, lalu geser baris untuk mengatur urutannya. Keterangan foto boleh dikosongkan.
+   */
+  gallery?:
+    | {
+        image?: (number | null) | Media;
+        /**
+         * Utamakan unggah atau pilih foto di atas. Tautan ini dipakai hanya jika foto unggahan belum dipilih.
+         */
+        imageUrl?: string | null;
+        caption?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Masukkan konten ini ke daftar pilihan di website.
+   */
+  featured?: boolean | null;
+  /**
+   * Angka lebih kecil tampil lebih awal.
+   */
+  order?: number | null;
+  seo?: {
+    title?: string | null;
+    description?: string | null;
+    image?: (number | null) | Media;
+  };
+  legacyId?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * Kelompokkan proyek berdasarkan jenis bangunannya.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "portfolioCategories".
+ */
+export interface PortfolioCategory {
+  id: number;
+  title: string;
+  /**
+   * Otomatis dari judul saat disimpan jika dikosongkan. Bisa diisi sendiri, misalnya rumah-tropis. Jangan ubah alamat yang sudah dibagikan.
+   */
+  slug: string;
+  description: string;
+  coverImage?: (number | null) | Media;
+  /**
+   * Utamakan unggah atau pilih foto di atas. Tautan ini dipakai hanya jika foto unggahan belum dipilih.
+   */
+  coverImageUrl?: string | null;
+  /**
+   * Angka lebih kecil tampil lebih awal.
+   */
+  order?: number | null;
   active?: boolean | null;
   updatedAt: string;
   createdAt: string;
-  email: string;
-  resetPasswordToken?: string | null;
-  resetPasswordExpiration?: string | null;
-  salt?: string | null;
-  hash?: string | null;
-  resetPasswordRequestedAt?: string | null;
-  loginAttempts?: number | null;
-  lockUntil?: string | null;
-  sessions?:
-    | {
-        id: string;
-        createdAt?: string | null;
-        expiresAt: string;
-      }[]
-    | null;
-  password?: string | null;
-  collection: 'users';
 }
 /**
+ * Unggah foto maksimal 10 MB per berkas. Isi deskripsi gambar sebelum menyimpan.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media".
  */
 export interface Media {
   id: number;
+  /**
+   * Jelaskan isi gambar secara singkat untuk pembaca layar.
+   */
   alt: string;
   caption?: string | null;
   updatedAt: string;
@@ -203,79 +278,29 @@ export interface Media {
   };
 }
 /**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "portfolioCategories".
- */
-export interface PortfolioCategory {
-  id: number;
-  title: string;
-  slug: string;
-  description: string;
-  coverImage?: (number | null) | Media;
-  coverImageUrl?: string | null;
-  order?: number | null;
-  active?: boolean | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "projects".
- */
-export interface Project {
-  id: number;
-  title: string;
-  slug: string;
-  legacyId?: string | null;
-  category: number | PortfolioCategory;
-  location?: string | null;
-  year?: string | null;
-  status?: string | null;
-  architectInCharge?: string | null;
-  siteArea?: string | null;
-  constructedArea?: string | null;
-  stories?: string | null;
-  shortIntro?: string | null;
-  description?:
-    | {
-        paragraph: string;
-        id?: string | null;
-      }[]
-    | null;
-  heroImage?: (number | null) | Media;
-  heroImageUrl?: string | null;
-  gallery?:
-    | {
-        image?: (number | null) | Media;
-        imageUrl?: string | null;
-        caption?: string | null;
-        id?: string | null;
-      }[]
-    | null;
-  featured?: boolean | null;
-  order?: number | null;
-  seo?: {
-    title?: string | null;
-    description?: string | null;
-    image?: (number | null) | Media;
-  };
-  updatedAt: string;
-  createdAt: string;
-  _status?: ('draft' | 'published') | null;
-}
-/**
+ * Kelola kabar studio. Simpan draf untuk ditinjau sebelum diterbitkan.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "news".
  */
 export interface News {
   id: number;
   title: string;
+  /**
+   * Otomatis dari judul saat disimpan jika dikosongkan. Bisa diisi sendiri, misalnya rumah-tropis. Jangan ubah alamat yang sudah dibagikan.
+   */
   slug: string;
+  /**
+   * Contoh: 1 Oktober 2026.
+   */
   date?: string | null;
   category?: string | null;
   author?: string | null;
   publishDate?: string | null;
   coverImage?: (number | null) | Media;
+  /**
+   * Utamakan unggah atau pilih foto di atas. Tautan ini dipakai hanya jika foto unggahan belum dipilih.
+   */
   coverImageUrl?: string | null;
   excerpt: string;
   body?: {
@@ -293,6 +318,9 @@ export interface News {
     };
     [k: string]: unknown;
   } | null;
+  /**
+   * Masukkan konten ini ke daftar pilihan di website.
+   */
   featured?: boolean | null;
   seo?: {
     title?: string | null;
@@ -304,39 +332,26 @@ export interface News {
   _status?: ('draft' | 'published') | null;
 }
 /**
+ * Layanan aktif tampil di halaman Services.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "team".
+ * via the `definition` "services".
  */
-export interface Team {
+export interface Service {
   id: number;
-  name: string;
-  roleTitle: string;
-  portrait?: (number | null) | Media;
-  portraitUrl?: string | null;
-  bio?: string | null;
-  instagram?: string | null;
+  title: string;
+  description: string;
+  /**
+   * Angka lebih kecil tampil lebih awal.
+   */
   order?: number | null;
   active?: boolean | null;
   updatedAt: string;
   createdAt: string;
 }
 /**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "inquiries".
- */
-export interface Inquiry {
-  id: number;
-  fullName: string;
-  email: string;
-  phone?: string | null;
-  subject: string;
-  message: string;
-  status: 'new' | 'read' | 'replied' | 'archived';
-  internalNotes?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
+ * Catat penghargaan yang diterima studio.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "awards".
  */
@@ -348,12 +363,17 @@ export interface Award {
   category: string;
   project: string;
   description: string;
+  /**
+   * Angka lebih kecil tampil lebih awal.
+   */
   order?: number | null;
   active?: boolean | null;
   updatedAt: string;
   createdAt: string;
 }
 /**
+ * Kelola gagasan desain dan pencapaian sayembara.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "competitions".
  */
@@ -365,10 +385,114 @@ export interface Competition {
   organizer: string;
   location: string;
   description: string;
+  /**
+   * Angka lebih kecil tampil lebih awal.
+   */
   order?: number | null;
   active?: boolean | null;
   updatedAt: string;
   createdAt: string;
+}
+/**
+ * Kelola profil dan foto anggota studio.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "team".
+ */
+export interface Team {
+  id: number;
+  name: string;
+  roleTitle: string;
+  portrait?: (number | null) | Media;
+  /**
+   * Utamakan unggah atau pilih foto di atas. Tautan ini dipakai hanya jika foto unggahan belum dipilih.
+   */
+  portraitUrl?: string | null;
+  bio?: string | null;
+  instagram?: string | null;
+  /**
+   * Angka lebih kecil tampil lebih awal.
+   */
+  order?: number | null;
+  active?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Unggah logo, pilih kelompoknya, lalu aktifkan agar tampil di website.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "brandLogos".
+ */
+export interface BrandLogo {
+  id: number;
+  name: string;
+  group: 'client' | 'collaborator' | 'media';
+  logo: number | Media;
+  /**
+   * Jika kosong, memakai deskripsi berkas atau nama mitra.
+   */
+  alt?: string | null;
+  url?: string | null;
+  /**
+   * Angka lebih kecil tampil lebih awal.
+   */
+  order?: number | null;
+  active?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Pesan dari formulir kontak. Perbarui status dan gunakan catatan internal untuk tindak lanjut.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "inquiries".
+ */
+export interface Inquiry {
+  id: number;
+  fullName: string;
+  email: string;
+  phone?: string | null;
+  subject: string;
+  message: string;
+  status: 'new' | 'read' | 'replied' | 'archived';
+  /**
+   * Hanya untuk tim studio; tidak ditampilkan di website.
+   */
+  internalNotes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Pemilik mengelola akun dan hak akses tim. Editor dapat menyimpan draf; admin dan pemilik dapat menerbitkan.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "users".
+ */
+export interface User {
+  id: number;
+  name: string;
+  role: 'owner' | 'admin' | 'editor';
+  active?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+  email: string;
+  resetPasswordToken?: string | null;
+  resetPasswordExpiration?: string | null;
+  salt?: string | null;
+  hash?: string | null;
+  resetPasswordRequestedAt?: string | null;
+  loginAttempts?: number | null;
+  lockUntil?: string | null;
+  sessions?:
+    | {
+        id: string;
+        createdAt?: string | null;
+        expiresAt: string;
+      }[]
+    | null;
+  password?: string | null;
+  collection: 'users';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -395,32 +519,20 @@ export interface PayloadLockedDocument {
   id: number;
   document?:
     | ({
-        relationTo: 'users';
-        value: number | User;
-      } | null)
-    | ({
-        relationTo: 'media';
-        value: number | Media;
+        relationTo: 'projects';
+        value: number | Project;
       } | null)
     | ({
         relationTo: 'portfolioCategories';
         value: number | PortfolioCategory;
       } | null)
     | ({
-        relationTo: 'projects';
-        value: number | Project;
-      } | null)
-    | ({
         relationTo: 'news';
         value: number | News;
       } | null)
     | ({
-        relationTo: 'team';
-        value: number | Team;
-      } | null)
-    | ({
-        relationTo: 'inquiries';
-        value: number | Inquiry;
+        relationTo: 'services';
+        value: number | Service;
       } | null)
     | ({
         relationTo: 'awards';
@@ -429,6 +541,26 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'competitions';
         value: number | Competition;
+      } | null)
+    | ({
+        relationTo: 'media';
+        value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'team';
+        value: number | Team;
+      } | null)
+    | ({
+        relationTo: 'brandLogos';
+        value: number | BrandLogo;
+      } | null)
+    | ({
+        relationTo: 'inquiries';
+        value: number | Inquiry;
+      } | null)
+    | ({
+        relationTo: 'users';
+        value: number | User;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -474,29 +606,135 @@ export interface PayloadMigration {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "users_select".
+ * via the `definition` "projects_select".
  */
-export interface UsersSelect<T extends boolean = true> {
-  name?: T;
-  role?: T;
+export interface ProjectsSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  category?: T;
+  location?: T;
+  year?: T;
+  status?: T;
+  shortIntro?: T;
+  architectInCharge?: T;
+  siteArea?: T;
+  constructedArea?: T;
+  stories?: T;
+  description?:
+    | T
+    | {
+        paragraph?: T;
+        id?: T;
+      };
+  heroImage?: T;
+  heroImageUrl?: T;
+  gallery?:
+    | T
+    | {
+        image?: T;
+        imageUrl?: T;
+        caption?: T;
+        id?: T;
+      };
+  featured?: T;
+  order?: T;
+  seo?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
+  legacyId?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "portfolioCategories_select".
+ */
+export interface PortfolioCategoriesSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  description?: T;
+  coverImage?: T;
+  coverImageUrl?: T;
+  order?: T;
   active?: T;
   updatedAt?: T;
   createdAt?: T;
-  email?: T;
-  resetPasswordToken?: T;
-  resetPasswordExpiration?: T;
-  salt?: T;
-  hash?: T;
-  resetPasswordRequestedAt?: T;
-  loginAttempts?: T;
-  lockUntil?: T;
-  sessions?:
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "news_select".
+ */
+export interface NewsSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  date?: T;
+  category?: T;
+  author?: T;
+  publishDate?: T;
+  coverImage?: T;
+  coverImageUrl?: T;
+  excerpt?: T;
+  body?: T;
+  featured?: T;
+  seo?:
     | T
     | {
-        id?: T;
-        createdAt?: T;
-        expiresAt?: T;
+        title?: T;
+        description?: T;
+        image?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "services_select".
+ */
+export interface ServicesSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  order?: T;
+  active?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "awards_select".
+ */
+export interface AwardsSelect<T extends boolean = true> {
+  title?: T;
+  year?: T;
+  issuer?: T;
+  category?: T;
+  project?: T;
+  description?: T;
+  order?: T;
+  active?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "competitions_select".
+ */
+export interface CompetitionsSelect<T extends boolean = true> {
+  title?: T;
+  year?: T;
+  achievement?: T;
+  organizer?: T;
+  location?: T;
+  description?: T;
+  order?: T;
+  active?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -543,94 +781,6 @@ export interface MediaSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "portfolioCategories_select".
- */
-export interface PortfolioCategoriesSelect<T extends boolean = true> {
-  title?: T;
-  slug?: T;
-  description?: T;
-  coverImage?: T;
-  coverImageUrl?: T;
-  order?: T;
-  active?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "projects_select".
- */
-export interface ProjectsSelect<T extends boolean = true> {
-  title?: T;
-  slug?: T;
-  legacyId?: T;
-  category?: T;
-  location?: T;
-  year?: T;
-  status?: T;
-  architectInCharge?: T;
-  siteArea?: T;
-  constructedArea?: T;
-  stories?: T;
-  shortIntro?: T;
-  description?:
-    | T
-    | {
-        paragraph?: T;
-        id?: T;
-      };
-  heroImage?: T;
-  heroImageUrl?: T;
-  gallery?:
-    | T
-    | {
-        image?: T;
-        imageUrl?: T;
-        caption?: T;
-        id?: T;
-      };
-  featured?: T;
-  order?: T;
-  seo?:
-    | T
-    | {
-        title?: T;
-        description?: T;
-        image?: T;
-      };
-  updatedAt?: T;
-  createdAt?: T;
-  _status?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "news_select".
- */
-export interface NewsSelect<T extends boolean = true> {
-  title?: T;
-  slug?: T;
-  date?: T;
-  category?: T;
-  author?: T;
-  publishDate?: T;
-  coverImage?: T;
-  coverImageUrl?: T;
-  excerpt?: T;
-  body?: T;
-  featured?: T;
-  seo?:
-    | T
-    | {
-        title?: T;
-        description?: T;
-        image?: T;
-      };
-  updatedAt?: T;
-  createdAt?: T;
-  _status?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "team_select".
  */
 export interface TeamSelect<T extends boolean = true> {
@@ -640,6 +790,21 @@ export interface TeamSelect<T extends boolean = true> {
   portraitUrl?: T;
   bio?: T;
   instagram?: T;
+  order?: T;
+  active?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "brandLogos_select".
+ */
+export interface BrandLogosSelect<T extends boolean = true> {
+  name?: T;
+  group?: T;
+  logo?: T;
+  alt?: T;
+  url?: T;
   order?: T;
   active?: T;
   updatedAt?: T;
@@ -662,35 +827,29 @@ export interface InquiriesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "awards_select".
+ * via the `definition` "users_select".
  */
-export interface AwardsSelect<T extends boolean = true> {
-  title?: T;
-  year?: T;
-  issuer?: T;
-  category?: T;
-  project?: T;
-  description?: T;
-  order?: T;
+export interface UsersSelect<T extends boolean = true> {
+  name?: T;
+  role?: T;
   active?: T;
   updatedAt?: T;
   createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "competitions_select".
- */
-export interface CompetitionsSelect<T extends boolean = true> {
-  title?: T;
-  year?: T;
-  achievement?: T;
-  organizer?: T;
-  location?: T;
-  description?: T;
-  order?: T;
-  active?: T;
-  updatedAt?: T;
-  createdAt?: T;
+  email?: T;
+  resetPasswordToken?: T;
+  resetPasswordExpiration?: T;
+  salt?: T;
+  hash?: T;
+  resetPasswordRequestedAt?: T;
+  loginAttempts?: T;
+  lockUntil?: T;
+  sessions?:
+    | T
+    | {
+        id?: T;
+        createdAt?: T;
+        expiresAt?: T;
+      };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -733,6 +892,8 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   createdAt?: T;
 }
 /**
+ * Ubah identitas, kontak, media sosial dan logo studio. Pengaturan ini hanya dapat diubah oleh pemilik.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "siteSettings".
  */

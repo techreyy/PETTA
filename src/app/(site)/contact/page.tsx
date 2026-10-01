@@ -56,11 +56,11 @@ export default function ContactPage() {
             {submitted ? (
               <div className="py-16 text-center space-y-4" role="status">
                 <CheckCircle2 className="w-12 h-12 text-[#39756B] mx-auto" />
-                <h3 className="text-2xl font-light text-[#14191E]">
+                <h2 className="text-2xl font-light text-[#14191E]">
                   Terima Kasih Atas Pertanyaan Anda
-                </h3>
+                </h2>
                 <p className="text-xs text-[#6B7785] max-w-sm mx-auto leading-relaxed">
-                  Pesan Anda telah tercatat di registri studio kami. Tim arsitek Petta Desain akan menghubungi Anda dalam waktu 1x24 jam.
+                  Pesan Anda telah tercatat di registri studio kami. Untuk kebutuhan mendesak, silakan hubungi studio melalui email atau telepon.
                 </p>
                 <button
                   onClick={() => setSubmitted(false)}
@@ -169,9 +169,9 @@ export default function ContactPage() {
               <span className="text-xs uppercase tracking-[0.3em] text-[#39756B] font-semibold block">
                 Kantor Pusat Studio
               </span>
-              <h3 className="text-2xl font-light text-[#14191E]">
+              <h2 className="text-2xl font-light text-[#14191E]">
                 {settings.name}
-              </h3>
+              </h2>
               <div className="text-sm font-light text-[#53606E] space-y-3 pt-2">
                 <p className="flex items-start gap-3">
                   <MapPin className="w-4 h-4 text-[#39756B] mt-0.5 shrink-0" />
@@ -193,14 +193,14 @@ export default function ContactPage() {
             </div>
 
             <div className="p-6 border border-[#E5E2DC] bg-white space-y-3">
-              <h4 className="text-xs uppercase tracking-widest text-[#14191E] font-medium">
+              <h2 className="text-xs uppercase tracking-widest text-[#14191E] font-medium">
                 Kanal Media Sosial Resmi
-              </h4>
+              </h2>
               <div className="space-y-2 text-xs">
                 <a
                   href={settings.instagram}
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noreferrer noopener"
                   className="flex items-center gap-2.5 text-[#53606E] hover:text-[#39756B]"
                 >
                   <InstagramIcon className="w-4 h-4 text-[#39756B]" />
@@ -209,7 +209,7 @@ export default function ContactPage() {
                 <a
                   href={settings.instagramFounder}
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noreferrer noopener"
                   className="flex items-center gap-2.5 text-[#53606E] hover:text-[#39756B]"
                 >
                   <InstagramIcon className="w-4 h-4 text-[#39756B]" />
@@ -218,7 +218,7 @@ export default function ContactPage() {
                 <a
                   href={settings.facebook}
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noreferrer noopener"
                   className="flex items-center gap-2.5 text-[#53606E] hover:text-[#39756B]"
                 >
                   <FacebookIcon className="w-4 h-4 text-[#39756B]" />
@@ -228,9 +228,9 @@ export default function ContactPage() {
             </div>
 
             <div className="p-6 border border-[#E5E2DC] bg-white space-y-2">
-              <h4 className="text-xs uppercase tracking-widest text-[#14191E] font-medium">
+              <h2 className="text-xs uppercase tracking-widest text-[#14191E] font-medium">
                 Waktu Konsultasi
-              </h4>
+              </h2>
               <p className="text-xs text-[#53606E] font-light leading-relaxed">
                 Senin — Sabtu: 08:30 — 17:30 WITA<br />
                 Konsultasi tatap muka di studio atau survei lokasi lahan dengan konfirmasi jadwal terlebih dahulu.

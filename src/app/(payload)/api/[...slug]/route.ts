@@ -15,8 +15,13 @@ function guarded(handler: (request: Request, context: Context) => Promise<Respon
     }
     if (!['GET', 'HEAD', 'OPTIONS'].includes(request.method)) {
       const origin = request.headers.get('origin');
-      const allowed = process.env.NEXT_PUBLIC_SITE_URL || new URL(request.url).origin;
-      if (origin && origin !== new URL(allowed).origin) return Response.json({ message: 'Invalid origin.' }, { status: 403 });
+      if (origin) {
+        const reqOrigin = new URL(request.url).origin;
+        const configuredOrigin = process.env.NEXT_PUBLIC_SITE_URL ? new URL(process.env.NEXT_PUBLIC_SITE_URL).origin : null;
+        const isLocal = origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:');
+        const isAllowed = origin === reqOrigin || (configuredOrigin && origin === configuredOrigin) || isLocal;
+        if (!isAllowed) return Response.json({ message: 'Invalid origin.' }, { status: 403 });
+      }
     }
     return handler(request, context);
   };

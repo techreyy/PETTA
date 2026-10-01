@@ -24,7 +24,7 @@ export function Footer() {
               <a
                 href={settings.instagram}
                 target="_blank"
-                rel="noreferrer"
+                rel="noreferrer noopener"
                 className="w-9 h-9 rounded-full border border-[#242E38] flex items-center justify-center hover:text-[#6A9D94] hover:border-[#6A9D94] transition-colors"
                 title="Instagram Petta Desain"
               >
@@ -33,7 +33,7 @@ export function Footer() {
               <a
                 href={settings.instagramFounder}
                 target="_blank"
-                rel="noreferrer"
+                rel="noreferrer noopener"
                 className="w-9 h-9 rounded-full border border-[#242E38] flex items-center justify-center hover:text-[#6A9D94] hover:border-[#6A9D94] transition-colors"
                 title="Instagram Founder"
               >
@@ -42,7 +42,7 @@ export function Footer() {
               <a
                 href={settings.facebook}
                 target="_blank"
-                rel="noreferrer"
+                rel="noreferrer noopener"
                 className="w-9 h-9 rounded-full border border-[#242E38] flex items-center justify-center hover:text-[#6A9D94] hover:border-[#6A9D94] transition-colors"
                 title="Facebook Petta Desain"
               >
@@ -78,6 +78,11 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/services" className="hover:text-white transition-colors">
+                  Services
+                </Link>
+              </li>
+              <li>
                 <Link href="/about" className="hover:text-white transition-colors">
                   Tentang Petta Desain
                 </Link>
@@ -85,11 +90,6 @@ export function Footer() {
               <li>
                 <Link href="/awards" className="hover:text-white transition-colors">
                   Awards &amp; Sayembara
-                </Link>
-              </li>
-              <li>
-                <Link href="/admin" className="hover:text-[#6A9D94] transition-colors">
-                  Studio Admin Portal
                 </Link>
               </li>
             </ul>

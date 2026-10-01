@@ -3,15 +3,18 @@ import { APIError } from 'payload';
 import { canPublish, isOwner, isStaff, ownerField, protectPublishing, publishedOrStaff } from './access';
 
 const slug: Field = { name: 'slug', type: 'text', required: true, unique: true, index: true,
-  validate: (value: unknown) => typeof value === 'string' && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value) || 'Use lowercase letters, numbers and single hyphens.' };
+  hooks: { beforeValidate: [({ value, originalDoc, siblingData }) => value || originalDoc?.slug || String(siblingData?.title || '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')] },
+  validate: (value: unknown, { siblingData }: { siblingData?: { title?: unknown } }) => (!value && Boolean(siblingData?.title)) || typeof value === 'string' && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value) || 'Gunakan huruf kecil, angka, dan tanda hubung.' };
 const order: Field = { name: 'order', type: 'number', defaultValue: 0 };
 const seo: Field = { name: 'seo', type: 'group', fields: [
   { name: 'title', type: 'text' }, { name: 'description', type: 'textarea' }, { name: 'image', type: 'upload', relationTo: 'media' },
 ] };
 export const imageFields = (name: string, required = false): Field[] => [
   { name, type: 'upload', relationTo: 'media', required },
-  { name: `${name}Url`, label: 'Existing image URL (optional)', type: 'text',
+  { type: 'collapsible', label: 'Tautan gambar lama (opsional)', admin: { initCollapsed: true }, fields: [
+  { name: `${name}Url`, label: 'Tautan gambar', type: 'text', admin: { description: 'Utamakan unggah atau pilih foto di atas. Tautan ini dipakai hanya jika foto unggahan belum dipilih.' },
     validate: (value: unknown) => !value || typeof value === 'string' && (value.startsWith('/') && !value.startsWith('//') || /^https:\/\/images\.unsplash\.com\//.test(value)) || 'Upload an image or use a local /path or images.unsplash.com URL.' },
+  ] },
 ];
 
 export const Users: CollectionConfig = {
@@ -46,14 +49,14 @@ export const Users: CollectionConfig = {
   },
   fields: [
     { name: 'name', type: 'text', required: true },
-    { name: 'role', type: 'select', required: true, defaultValue: 'editor', options: ['owner', 'admin', 'editor'], access: { create: ownerField, update: ownerField } },
+    { name: 'role', type: 'select', required: true, defaultValue: 'editor', options: [{ label: 'Pemilik', value: 'owner' }, { label: 'Admin', value: 'admin' }, { label: 'Editor', value: 'editor' }], access: { create: ownerField, update: ownerField } },
     { name: 'active', type: 'checkbox', defaultValue: true, access: { create: ownerField, update: ownerField } },
   ],
 };
 
 export const Media: CollectionConfig = {
   slug: 'media', access: { read: () => true, create: isStaff, update: isStaff, delete: canPublish },
-  upload: { staticDir: 'media', mimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/avif'],
+  upload: { staticDir: 'media', mimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/svg+xml'],
     imageSizes: [{ name: 'card', width: 800 }, { name: 'large', width: 1800 }], adminThumbnail: 'card' },
   fields: [{ name: 'alt', type: 'text', required: true }, { name: 'caption', type: 'text' }],
   hooks: { beforeOperation: [({ operation, req }) => {
@@ -72,7 +75,8 @@ export const Media: CollectionConfig = {
     const categories = await req.payload.find({ collection: 'portfolioCategories', limit: 1, depth: 0, req, where: { coverImage: { equals: id } } });
     const settings = await req.payload.findGlobal({ slug: 'siteSettings', depth: 0, req });
     const team = await req.payload.find({ collection: 'team', depth: 0, limit: 1, req, where: { portrait: { equals: id } } });
-    if (projects.totalDocs || drafts.totalDocs || news.totalDocs || newsVersions.totalDocs || categories.totalDocs || team.totalDocs || settings.logo === id) {
+    const logos = await req.payload.count({ collection: 'brandLogos', req, overrideAccess: true, where: { logo: { equals: id } } });
+    if (projects.totalDocs || drafts.totalDocs || news.totalDocs || newsVersions.totalDocs || categories.totalDocs || team.totalDocs || logos.totalDocs || settings.logo === id) {
       throw new APIError('This image is referenced by content or a saved version. Remove those references before deleting.', 409);
     }
   }] },
@@ -83,7 +87,8 @@ export const Categories: CollectionConfig = {
   access: { read: () => true, create: canPublish, update: canPublish, delete: isOwner },
   hooks: { beforeDelete: [async ({ id, req }) => {
     const references = await req.payload.count({ collection: 'projects', req, where: { category: { equals: id } } });
-    if (references.totalDocs) throw new APIError('Move the projects to another category before deleting this category.', 409);
+    const versions = await req.payload.findVersions({ collection: 'projects', req, depth: 0, limit: 1, where: { 'version.category': { equals: id } } });
+    if (references.totalDocs || versions.totalDocs) throw new APIError('Move the projects and remove saved version references before deleting this category.', 409);
   }] },
   fields: [{ name: 'title', type: 'text', required: true }, slug, { name: 'description', type: 'textarea', required: true }, ...imageFields('coverImage'), order, { name: 'active', type: 'checkbox', defaultValue: true }],
 };
@@ -97,27 +102,39 @@ export const Team: CollectionConfig = {
 };
 
 export const Projects: CollectionConfig = {
-  slug: 'projects', admin: { useAsTitle: 'title', defaultColumns: ['title', '_status', 'category', 'updatedAt'] },
+  slug: 'projects', admin: { useAsTitle: 'title', defaultColumns: ['title', 'status', '_status', 'category', 'updatedAt'] },
   access: { read: publishedOrStaff, create: isStaff, update: isStaff, delete: canPublish, readVersions: isStaff },
   versions: { drafts: true, maxPerDoc: 30 }, hooks: { beforeChange: [protectPublishing] },
-  fields: [
+  fields: [{ type: 'tabs', tabs: [
+    { label: 'Informasi Utama', admin: { description: 'Mulai dari judul, kategori dan lokasi. Status pembangunan berbeda dari status publikasi.' }, fields: [
     { name: 'title', type: 'text', required: true }, slug,
-    { name: 'legacyId', type: 'text', unique: true, admin: { readOnly: true } },
     { name: 'category', type: 'relationship', relationTo: 'portfolioCategories', required: true },
-    ...['location', 'year', 'status', 'architectInCharge', 'siteArea', 'constructedArea', 'stories'].map((name): Field => ({ name, type: 'text' })),
+    { type: 'row', fields: ['location', 'year'].map((name): Field => ({ name, type: 'text', admin: { width: '50%' } })) },
+    { name: 'status', label: 'Status pembangunan', type: 'text', admin: { components: { Field: '/components/admin/ProjectStatusField#ProjectStatusField' }, description: 'Pilih status sesuai kondisi proyek. Nilai lama tetap dipertahankan.' } },
     { name: 'shortIntro', type: 'textarea' },
-    { name: 'description', type: 'array', fields: [{ name: 'paragraph', type: 'textarea', required: true }] },
+    { type: 'collapsible', label: 'Detail proyek (opsional)', admin: { initCollapsed: true }, fields: [
+      ...['architectInCharge', 'siteArea', 'constructedArea', 'stories'].map((name): Field => ({ name, type: 'text' })),
+      { name: 'description', type: 'array', fields: [{ name: 'paragraph', type: 'textarea', required: true }] },
+    ] },
+    ] },
+    { label: 'Foto & Galeri', admin: { description: 'Pilih foto utama untuk sampul proyek, kemudian susun galeri dokumentasi.' }, fields: [
     ...imageFields('heroImage'),
     { name: 'gallery', type: 'array', fields: [...imageFields('image'), { name: 'caption', type: 'text' }] },
-    { name: 'featured', type: 'checkbox', defaultValue: false }, order, seo,
-  ],
+    ] },
+    { label: 'Publikasi', admin: { description: 'Atur pilihan dan urutan tampil. Gunakan tombol simpan draf atau terbitkan; editor hanya dapat menyimpan draf.' }, fields: [
+    { name: 'featured', type: 'checkbox', defaultValue: false }, order,
+    { type: 'collapsible', label: 'Pengaturan lanjutan (opsional)', admin: { initCollapsed: true }, fields: [
+      seo, { name: 'legacyId', type: 'text', unique: true, admin: { readOnly: true } },
+    ] },
+    ] },
+  ] }],
 };
 
 export const News: CollectionConfig = {
   slug: 'news', admin: { useAsTitle: 'title' },
   access: { read: publishedOrStaff, create: isStaff, update: isStaff, delete: canPublish, readVersions: isStaff },
   versions: { drafts: true, maxPerDoc: 30 }, hooks: { beforeChange: [protectPublishing] },
-  fields: [{ name: 'title', type: 'text', required: true }, slug, { name: 'date', label: 'Publication date label', type: 'text' },
+  fields: [{ name: 'title', type: 'text', required: true }, slug, { name: 'date', label: 'Tanggal yang ditampilkan', type: 'text', admin: { description: 'Contoh: 1 Oktober 2026.' } },
     { name: 'category', type: 'text' }, { name: 'author', type: 'text' }, { name: 'publishDate', type: 'date' },
     ...imageFields('coverImage'), { name: 'excerpt', type: 'textarea', required: true },
     { name: 'body', type: 'richText' }, { name: 'featured', type: 'checkbox', defaultValue: false }, seo],
@@ -129,7 +146,7 @@ export const Inquiries: CollectionConfig = {
   fields: [
     ...['fullName', 'email', 'phone', 'subject'].map((name): Field => ({ name, type: 'text', required: name !== 'phone', access: { update: () => false } })),
     { name: 'message', type: 'textarea', required: true, access: { update: () => false } },
-    { name: 'status', type: 'select', options: ['new', 'read', 'replied', 'archived'], defaultValue: 'new', required: true },
+    { name: 'status', label: 'Status tindak lanjut', type: 'select', options: [{ label: 'Baru', value: 'new' }, { label: 'Sudah dibaca', value: 'read' }, { label: 'Sudah dibalas', value: 'replied' }, { label: 'Diarsipkan', value: 'archived' }], defaultValue: 'new', required: true },
     { name: 'internalNotes', type: 'textarea' },
   ],
 };
@@ -171,4 +188,3 @@ export const Competitions: CollectionConfig = {
     { name: 'active', type: 'checkbox', defaultValue: true },
   ],
 };
-
