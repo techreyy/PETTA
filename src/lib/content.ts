@@ -32,10 +32,11 @@ import type { StudioSettings } from "./SettingsContext";
 export const cms = () => getPayload({ config });
 
 // A configured CMS is authoritative, even when DEMO_CONTENT is enabled.
-// Missing configuration must not silently turn a production site into a demo.
+// Missing configuration must not silently turn a production site into a demo,
+// but on Vercel deployments without a cloud database, automatically use demo content.
 function useDemoContent() {
   if (cmsReady()) return false;
-  if (process.env.DEMO_CONTENT === "true") return true;
+  if (process.env.DEMO_CONTENT === "true" || Boolean(process.env.VERCEL)) return true;
   throw new Error(
     "CMS is not configured. Configure DATABASE_URI and PAYLOAD_SECRET, or explicitly set DEMO_CONTENT=true for a demo.",
   );
@@ -127,17 +128,18 @@ export const getContent = cache(async () => {
 
   if (useDemoContent()) return fallback;
 
-  const payload = await cms();
-  const [
-    projectResult,
-    categoryResult,
-    newsResult,
-    settings,
-    teamResult,
-    awardResult,
-    competitionResult,
-    logoResult,
-  ] = await Promise.all([
+  try {
+    const payload = await cms();
+    const [
+      projectResult,
+      categoryResult,
+      newsResult,
+      settings,
+      teamResult,
+      awardResult,
+      competitionResult,
+      logoResult,
+    ] = await Promise.all([
     payload.find({
       collection: "projects",
       overrideAccess: false,
@@ -269,13 +271,21 @@ export const getContent = cache(async () => {
     categories,
     settings: siteSettings,
   };
-});
+  } catch (err) {
+  if (process.env.VERCEL) {
+    console.error("CMS read error on Vercel, falling back to static studio data:", err);
+    return fallback;
+  }
+  throw err;
+  }
+  });
 
-export const getProject = cache(async (slug: string) => {
+  export const getProject = cache(async (slug: string) => {
   const fallback = PROJECTS.find((p) => p.slug === slug);
   if (useDemoContent())
-    return fallback ? { project: fallback, seo: null } : null;
+  return fallback ? { project: fallback, seo: null } : null;
 
+  try {
   const payload = await cms();
   const result = await payload.find({
     collection: "projects",
@@ -289,13 +299,20 @@ export const getProject = cache(async (slug: string) => {
   if (result.docs[0])
     return { project: projectView(result.docs[0]), seo: result.docs[0].seo };
   return null;
-});
+  } catch (err) {
+  if (process.env.VERCEL) {
+    return fallback ? { project: fallback, seo: null } : null;
+  }
+  throw err;
+  }
+  });
 
-export const getNews = cache(async (slug: string) => {
+  export const getNews = cache(async (slug: string) => {
   const fallback = NEWS_ITEMS.find((n) => n.slug === slug);
   if (useDemoContent())
-    return fallback ? { item: fallback, body: null, seo: null } : null;
+  return fallback ? { item: fallback, body: null, seo: null } : null;
 
+  try {
   const payload = await cms();
   const result = await payload.find({
     collection: "news",
@@ -309,4 +326,10 @@ export const getNews = cache(async (slug: string) => {
   const doc = result.docs[0];
   if (doc) return { item: newsView(doc), body: doc.body, seo: doc.seo };
   return null;
-});
+  } catch (err) {
+  if (process.env.VERCEL) {
+    return fallback ? { item: fallback, body: null, seo: null } : null;
+  }
+  throw err;
+  }
+  });
