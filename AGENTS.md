@@ -489,6 +489,14 @@ YYYY-MM-DD — Change title
 - Notes:
 ```
 
+### 2026-10-02 - Automatic database seeding migration for complete project catalog
+- Changed: Added migration `20261002_133000_seed_project_folder.ts` that automatically seeds all 11 architectural categories, all 15 real projects (with full descriptions, specifications, hero images, and documentation galleries), 7 studio services, team members, awards, competitions, news items, and site settings whenever connected to an empty cloud PostgreSQL database.
+- Files/areas: web-app/src/migrations/20261002_133000_seed_project_folder.ts, web-app/src/migrations/index.ts, AGENTS.md.
+- CMS/schema impact: None (idempotent seed migration).
+- Migration/env required: Automatically runs during next cloud database connection.
+- Verified: TypeScript (`tsc --noEmit`), ESLint (`npm run lint`), and production build (`npm run build`) passed with zero errors.
+- Notes: Satisfies user request to automatically populate the cloud CMS database with all projects from the project folder.
+
 ### 2026-10-02 - Enable cloud production migrations, SSL auto-negotiation and admin error boundary
 - Changed: Passed `prodMigrations: migrations` to `postgresAdapter` in `src/payload.config.ts` so Payload automatically executes database migrations on cloud connect. Configured `ssl: { rejectUnauthorized: false }` for non-local Postgres connections and increased connection timeout to 10s. Added `src/app/(payload)/error.tsx` dedicated admin error boundary and rebuilt `src/app/global-error.tsx` with self-contained inline styling and error message reporting.
 - Files/areas: web-app/src/payload.config.ts, web-app/src/app/(payload)/error.tsx, web-app/src/app/global-error.tsx, AGENTS.md.

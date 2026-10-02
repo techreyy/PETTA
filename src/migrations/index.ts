@@ -4,6 +4,7 @@ import * as migration_20260927_090057_team from './20260927_090057_team';
 import * as migration_20260927_094500_awards_competitions from './20260927_094500_awards_competitions';
 import * as migration_20260929_161232_brand_logos from './20260929_161232_brand_logos';
 import * as migration_20260930_183907_services from './20260930_183907_services';
+import * as migration_20261002_133000_seed_project_folder from './20261002_133000_seed_project_folder';
 
 export const migrations = [
   {
@@ -35,5 +36,10 @@ export const migrations = [
     up: migration_20260930_183907_services.up,
     down: migration_20260930_183907_services.down,
     name: '20260930_183907_services'
+  },
+  {
+    up: migration_20261002_133000_seed_project_folder.up,
+    down: migration_20261002_133000_seed_project_folder.down,
+    name: '20261002_133000_seed_project_folder'
   },
 ];
