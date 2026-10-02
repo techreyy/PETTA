@@ -489,6 +489,14 @@ YYYY-MM-DD — Change title
 - Notes:
 ```
 
+### 2026-10-02 - Enable cloud production migrations, SSL auto-negotiation and admin error boundary
+- Changed: Passed `prodMigrations: migrations` to `postgresAdapter` in `src/payload.config.ts` so Payload automatically executes database migrations on cloud connect. Configured `ssl: { rejectUnauthorized: false }` for non-local Postgres connections and increased connection timeout to 10s. Added `src/app/(payload)/error.tsx` dedicated admin error boundary and rebuilt `src/app/global-error.tsx` with self-contained inline styling and error message reporting.
+- Files/areas: web-app/src/payload.config.ts, web-app/src/app/(payload)/error.tsx, web-app/src/app/global-error.tsx, AGENTS.md.
+- CMS/schema impact: None (migrations run automatically on production startup).
+- Migration/env required: Existing cloud `DATABASE_URI` supported.
+- Verified: TypeScript (`tsc --noEmit`), ESLint (`npm run lint`), and production build (`npm run build`) passed with zero errors.
+- Notes: Resolves admin loading failure on Vercel caused by missing production migrations and cloud SSL negotiation.
+
 ### 2026-10-02 - Synchronize 15 database projects, 11 categories, 7 services and 213 media assets for cloud deployment
 - Changed: Synchronized all 15 real studio projects (including SMART SCHOOL with 12 gallery photos, SPORT CENTER with 21 photos, CA-HOUSE with 7 photos, R-HOUSE, P-HOUSE, F-HOUSE, etc.), all 11 architectural categories, and all 7 services from the local database into `src/lib/data.ts`. Copied 213 media assets to `public/api/media/file/` and updated `src/app/(payload)/api/[...slug]/route.ts` with direct filesystem streaming fallback, ensuring full portfolio galleries render seamlessly on Vercel deployments without requiring an external cloud database.
 - Files/areas: web-app/src/lib/data.ts, web-app/src/app/(payload)/api/[...slug]/route.ts, web-app/public/api/media/file/, AGENTS.md.

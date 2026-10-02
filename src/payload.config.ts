@@ -12,8 +12,11 @@ import { Categories, Inquiries, Media, News, Projects, Users, Team, Awards, Comp
 import { BrandLogos, Services } from './cms/editorial';
 import { isOwner } from './cms/access';
 import { STUDIO_INFO } from './lib/data';
+import { migrations } from './migrations';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const isLocalDb = !process.env.DATABASE_URI || process.env.DATABASE_URI.includes('localhost') || process.env.DATABASE_URI.includes('127.0.0.1');
 
 export default buildConfig({
   i18n: { supportedLanguages: { id, en }, fallbackLanguage: 'id' },
@@ -28,7 +31,16 @@ export default buildConfig({
       openGraph: { images: [{ url: '/petta-logo-transparent.png' }] },
     },
   },
-  db: postgresAdapter({ pool: { connectionString: process.env.DATABASE_URI || '', connectionTimeoutMillis: 5000 }, push: false, migrationDir: path.resolve(dirname, 'migrations') }),
+  db: postgresAdapter({
+    pool: {
+      connectionString: process.env.DATABASE_URI || '',
+      connectionTimeoutMillis: 10000,
+      ssl: isLocalDb ? false : { rejectUnauthorized: false },
+    },
+    push: false,
+    prodMigrations: migrations,
+    migrationDir: path.resolve(dirname, 'migrations'),
+  }),
   editor: lexicalEditor(), sharp,
   email: () => ({ name: 'unconfigured', defaultFromAddress: STUDIO_INFO.email, defaultFromName: 'Petta Studio',
     sendEmail: async () => { throw new Error('Email delivery is not configured. Contact the studio owner for account recovery.'); } }),
