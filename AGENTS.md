@@ -489,6 +489,14 @@ YYYY-MM-DD — Change title
 - Notes:
 ```
 
+### 2026-10-02 - Use Webpack bundler explicitly in build script
+- Changed: Updated `build` script in `package.json` to `next build --webpack`.
+- Files/areas: web-app/package.json, AGENTS.md.
+- CMS/schema impact: None.
+- Migration/env required: No.
+- Verified: Local `npm run build` executed and passed cleanly with code 0 (all routes and static pages generated without errors).
+- Notes: Explicitly instructs Next.js to use Webpack during production build.
+
 ### 2026-10-02 - Automatic database seeding migration for complete project catalog
 - Changed: Added migration `20261002_133000_seed_project_folder.ts` that automatically seeds all 11 architectural categories, all 15 real projects (with full descriptions, specifications, hero images, and documentation galleries), 7 studio services, team members, awards, competitions, news items, and site settings whenever connected to an empty cloud PostgreSQL database.
 - Files/areas: web-app/src/migrations/20261002_133000_seed_project_folder.ts, web-app/src/migrations/index.ts, AGENTS.md.
