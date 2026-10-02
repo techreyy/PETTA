@@ -1,12 +1,48 @@
+import path from 'node:path';
+import { readFile } from 'node:fs/promises';
 import config from '@payload-config';
 import { REST_DELETE, REST_GET, REST_OPTIONS, REST_PATCH, REST_POST, REST_PUT } from '@payloadcms/next/routes';
 import { cmsReady } from '@/lib/cms-ready';
 
+function getMediaMimeType(filename: string): string {
+  const ext = path.extname(filename).toLowerCase();
+  switch (ext) {
+    case '.webp': return 'image/webp';
+    case '.png': return 'image/png';
+    case '.jpg':
+    case '.jpeg': return 'image/jpeg';
+    case '.svg': return 'image/svg+xml';
+    case '.avif': return 'image/avif';
+    default: return 'application/octet-stream';
+  }
+}
+
 type Context = { params: Promise<{ slug?: string[] }> };
 function guarded(handler: (request: Request, context: Context) => Promise<Response>) {
   return async (request: Request, context: Context) => {
-    if (!cmsReady()) return Response.json({ message: 'CMS unavailable.' }, { status: 503 });
     const { slug = [] } = await context.params;
+
+    // Gracefully serve uploaded media files from disk if CMS is unconfigured or offline
+    if (request.method === 'GET' && slug[0] === 'media' && slug[1] === 'file' && slug[2]) {
+      const filename = slug.slice(2).join('/');
+      for (const dir of ['public/api/media/file', 'media']) {
+        try {
+          const filePath = path.join(/*turbopackIgnore: true*/ process.cwd(), dir, filename);
+          const data = await readFile(filePath);
+          return new Response(data, {
+            status: 200,
+            headers: {
+              'Content-Type': getMediaMimeType(filename),
+              'Cache-Control': 'public, max-age=31536000, immutable',
+            },
+          });
+        } catch {
+          // try next location
+        }
+      }
+    }
+
+    if (!cmsReady()) return Response.json({ message: 'CMS unavailable.' }, { status: 503 });
     if (slug[0] === 'users' && slug[1] === 'first-register') {
       const { getPayload } = await import('payload');
       const payload = await getPayload({ config });
