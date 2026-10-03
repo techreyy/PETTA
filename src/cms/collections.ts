@@ -60,7 +60,7 @@ export const Media: CollectionConfig = {
   slug: 'media', access: { read: () => true, create: isStaff, update: isStaff, delete: canPublish },
   upload: {
     staticDir: 'media',
-    disableLocalStorage: isS3Configured(),
+    disableLocalStorage: process.env.NODE_ENV === 'production' || Boolean(process.env.S3_BUCKET) ? true : isS3Configured(),
     mimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/svg+xml'],
     imageSizes: [
       { name: 'card', width: 800, withoutEnlargement: true },

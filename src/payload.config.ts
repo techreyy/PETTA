@@ -136,7 +136,12 @@ export default buildConfig({
   cors: [process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'],
   csrf: [process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'],
   plugins: isS3Configured(s3Config) ? [s3Storage({
-    collections: { media: true }, bucket: s3Config.bucket,
+    collections: {
+      media: {
+        disableLocalStorage: true,
+      },
+    },
+    bucket: s3Config.bucket,
     config: {
       endpoint: s3Config.endpoint,
       region: s3Config.region,
