@@ -522,6 +522,14 @@ YYYY-MM-DD — Change title
 - Notes:
 ```
 
+### 2026-10-03 - Migration for media `_objectKey` (clientUploads)
+- Changed: Added hand-trimmed additive migration `20261003_100000_media_object_key` (`ALTER TABLE media ADD COLUMN IF NOT EXISTS _objectkey varchar`; Payload maps field `_objectKey` to column `_objectkey`) and registered it in `src/migrations/index.ts`. `migrate:create` was not used verbatim because the diff also drops legacy `focal_x/focal_y/sizes_*` columns (fields removed from config earlier); those columns are intentionally left in place. Regenerated `payload-types.ts` (adds `_objectKey`).
+- Files/areas: src/migrations/20261003_100000_media_object_key.ts, src/migrations/index.ts, src/payload-types.ts.
+- CMS/schema impact: one nullable column on `media`; no data touched.
+- Migration/env required: yes, applied automatically. `postgresAdapter` has `prodMigrations`, so `@payloadcms/db-postgres` connect() runs pending migrations on server start when NODE_ENV=production; no temporary deploy hook is needed. Production (Neon) run/status not performed by the agent (no production credentials locally).
+- Verified: migrate + migrate:status on local DB (batch 7, Yes); typecheck, lint, tests, build.
+- Notes: Verify in production after deploy: admin media list, JPG/PNG upload, save, replace, delete.
+
 ### 2026-10-03 - R2 client-side direct uploads
 - Changed: `s3Storage` now sets `clientUploads: true`; the browser uploads via a presigned URL generated server-side by the official adapter (`/api/storage-s3-generate-signed-url`, authenticated users), then Payload creates the Media record. Regenerated admin importMap (adds `S3ClientUploadHandler`; regenerate with S3_* env set). Bucket CORS must allow https://pettadesain.id PUT. Credentials stay server-side; no imageSizes/crop/focalPoint/transforms.
 - Files/areas: src/payload.config.ts, src/app/(payload)/admin/importMap.js.

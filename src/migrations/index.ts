@@ -6,6 +6,7 @@ import * as migration_20260927_094500_awards_competitions from './20260927_09450
 import * as migration_20260929_161232_brand_logos from './20260929_161232_brand_logos';
 import * as migration_20260930_183907_services from './20260930_183907_services';
 import * as migration_20261002_133000_seed_project_folder from './20261002_133000_seed_project_folder';
+import * as migration_20261003_100000_media_object_key from './20261003_100000_media_object_key';
 
 export const migrations = [
   {
@@ -44,4 +45,5 @@ export const migrations = [
     name: '20261002_133000_seed_project_folder'
   },
   { up: migration_20261003_090000_team_roster.up, down: migration_20261003_090000_team_roster.down, name: '20261003_090000_team_roster' },
+  { up: migration_20261003_100000_media_object_key.up, down: migration_20261003_100000_media_object_key.down, name: '20261003_100000_media_object_key' },
 ];
