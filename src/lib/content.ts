@@ -204,7 +204,7 @@ export const getContent = cache(async () => {
   const team = teamResult.docs.map((member) => ({
     name: member.name,
     role: member.roleTitle,
-    portrait: imageUrl(member.portrait, member.portraitUrl),
+    portrait: member.portrait || member.portraitUrl ? imageUrl(member.portrait, member.portraitUrl) : "",
     bio: member.bio || "",
     instagram: member.instagram || "",
   }));

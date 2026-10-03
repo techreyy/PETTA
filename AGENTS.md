@@ -1,7 +1,7 @@
 # AGENTS.md — Architecture Portfolio Website
 
 > **ACTIVE PROJECT SOURCE OF TRUTH**  
-> Last updated: 2026-10-02
+> Last updated: 2026-10-03
 > Reference: https://atelierriri.com/  
 > Goal: build a premium architecture website with comparable UX/features and original branding/assets/code.
 
@@ -154,6 +154,8 @@ About page:
 
 Team item:
 `name, roleTitle, portrait, bio?, order, active`
+
+Team roster (2026-10-03): eight owner-supplied members in the requested order, from Principal Architect / Design Director to Business Development. Names, roles, ordering and portraits remain CMS-managed; missing portraits render initials. Superseded demo profiles are inactive and preserved.
 
 Service item:
 `title, description, order, active`
@@ -449,7 +451,13 @@ Overall: CORE WEBSITE IMPLEMENTED; CMS PARITY AND PRODUCTION PERFORMANCE AUDIT R
 
 Only change `[ ]` to `[x]` after verification.
 
-Latest update (2026-10-02):
+Latest update (2026-10-03):
+- GitHub release: owner authorized committing and pushing the verified team update to origin/main. Existing Vercel integration handles deployment; no new schema or environment configuration required.
+- Updated eight team members, roles and order in CMS and fallback content; corrected founder credentials to S.Ars., M.Ars., IAI. About reads founder settings and renders initials for missing team portraits.
+- Applied data migration 20261003_090000_team_roster locally; eight active names/roles/order verified against the supplied roster. Existing portraits are preserved, superseded profiles are inactive. No schema or environment changes; cloud applies the migration on deployment.
+- Final TypeScript, ESLint and production build passed. Browser responsive QA has not been performed for this update.
+
+Previous update (2026-10-02):
 - Database-to-Cloud Asset & Data Sync: Synchronized 15 real projects (SMART SCHOOL, SPORT CENTER, CA-HOUSE, R-HOUSE, P-HOUSE, F-HOUSE, etc.), 11 categories, and 7 services from PostgreSQL into static data fallback; copied 213 media assets to `public/api/media/file/` with direct streaming in the API route handler so Vercel renders complete project galleries without a database dependency.
 - Vercel cloud deployment resilience: Handled missing cloud database on Vercel by automatically serving the built-in studio catalog and default services instead of throwing an uncaught 500 error ("This page couldn't load"). Added branded dark architectural global-error boundary.
 - GitHub and Vercel deployment sync: Staged all new/modified files, added .cache/ to .gitignore, committed (0bcfe5c) and pushed to origin/main on GitHub (https://github.com/techreyy/PETTA.git) to trigger automated Vercel deployment.
@@ -488,6 +496,14 @@ YYYY-MM-DD — Change title
 - Verified:
 - Notes:
 ```
+
+### 2026-10-03 - Owner-approved eight-member studio team
+- Changed: Updated eight names, credentials, roles and ordering; About founder text now reads CMS settings and missing team portraits use initials.
+- Files/areas: lib/team-roster.ts, lib/data.ts, lib/content.ts, About page, migrations/index.ts, 20261003_090000_team_roster.ts, both AGENTS.md files.
+- CMS/schema impact: Team content update, existing photos preserved, duplicate/superseded demo profiles retained inactive. No schema change.
+- Migration/env required: Data migration applied locally; production applies it on deployment. No new environment variables.
+- Verified: Eight active CMS members match supplied names, roles and order; TypeScript, lint and build passed. Final repeat checks passed; responsive browser QA not performed.
+- Notes: Existing pending catalog seed also ran during local migration. Owner requested GitHub delivery on 2026-10-03; release path is origin/main with the existing Vercel integration. Production deployment health is verified separately from git push.
 
 ### 2026-10-02 - Use Webpack bundler explicitly in build script
 - Changed: Updated `build` script in `package.json` to `next build --webpack`.
@@ -692,105 +708,7 @@ YYYY-MM-DD — Change title
 - Migration/env required: no
 - Verified: `npm run test` passed 9/9 tests; `npm run build` compiled 100% cleanly.
 - Notes: Satisfies user request for dedicated Awards and Sayembara navigation and admin verification.
-### 2026-09-27 — Cropped Architectural Emblem Favicon & Pure Logo Header Presentation
-- Changed:
-  1. **Cropped Architectural Emblem Favicon**: Di-crop bagian lambang arsitekturalnya saja (menghapus tulisan "PETTA" yang gepeng saat di-resize jadi favicon) menjadi ikon persegi presisi tajam (`petta-icon-only.png`).
-  2. **Browser Tab Icon**: Menghubungkan favicon tab browser langsung ke `petta-icon-only.png` dengan query cache buster (`?v=3`) di tag `<head>` dan `src/app/icon.png`.
-  3. **Header Clean Logo**: Di header navbar tetap mempertahankan logo asli yang bersih tanpa teks samping yang menumpuk.
-- Files/areas: `web-app/src/app/layout.tsx`, `web-app/public/petta-icon-only.png`, `web-app/src/app/icon.png`, `web-app/src/app/favicon.ico`, `web-app/public/favicon.ico`, `AGENTS.md`
-- CMS/schema impact: None.
-- Migration/env required: no
-- Verified: `npm run build` compiled 10/10 static pages with zero errors. All routes prerendered.
-- Notes: Satisfies user request: "jelekk, logonya aja, pettanya jangan mi, jadi crop yaa".
-
-### 2026-09-27 — Studio Settings, Custom Logo Uploader & Admin Account Management
-- Changed:
-  1. **Dynamic Office Phone & Contact Management**: Added an editable form in `/admin` (Tab "Ubah Logo, No. HP & Akun") enabling immediate updates to the studio's official phone number/WhatsApp, email, address, studio name, and founder name. Changes automatically propagate across Footer, Contact Page, and meta info via `SettingsContext`.
-  2. **Live Logo Uploader**: Implemented an instant custom logo uploader (`<input type="file">` with base64 DataURL). Uploading a new brand mark replaces the logo everywhere (Header, Footer, and Admin status bar) immediately with a one-click Reset to default option.
-  3. **Admin User Creation & Authentication**:
-     - Built a dynamic admin user registry supporting account creation (`addAdminUser`) with customizable roles (`Owner`, `Principal Architect`, `Senior Architect`, `Editor`), passwords, and usernames.
-     - Updated login flow to validate against all dynamically registered admin accounts with role-based profile indicators.
-- Files/areas: `web-app/src/lib/SettingsContext.tsx`, `web-app/src/app/layout.tsx`, `web-app/src/components/PettaLogo.tsx`, `web-app/src/components/Footer.tsx`, `web-app/src/app/contact/page.tsx`, `web-app/src/app/admin/page.tsx`, `AGENTS.md`
-- CMS/schema impact: Client-side persistent Settings & Admin Users stores implemented.
-- Migration/env required: no
-- Verified: `npm run build` compiled 100% cleanly without errors.
-- Notes: Satisfies user request for phone editing, live logo replacement, and custom admin user generation.
-
-### 2026-09-27 — Real-Time Admin Project Sync, Live Status Switcher & UI Enhancement
-- Changed:
-  1. **Real-Time Website Synchronization**: Connected the Admin portal (`/admin`) to a centralized `ProjectProvider` with `localStorage` persistence. Any project added, edited, or deleted in the admin console now immediately updates the live public website (`/`, `/portfolio`, `/portfolio/category/[slug]`, and `/portfolio/[slug]`) in real time.
-  2. **Direct Status Changer**:
-     - Added an inline status selector directly in the Admin Project table (`Completed`, `Built`, `Completed / Under Phasing`, `In Progress`, `Design Development`, `Under Construction`).
-     - Added status selection dropdown in the Add/Edit Project modal so projects no longer get stuck on "In Progress".
-  3. **Edit Project Capability**: Added an Edit button (`Edit2`) to the project actions table, allowing instant modification of title, category, status, and photos.
-  4. **Visual Polish**: Refined admin table styling with smooth rounded cards (`rounded-xl`), soft borders, and official Petta Sage Teal accents.
-- Files/areas: `web-app/src/lib/ProjectContext.tsx`, `web-app/src/app/layout.tsx`, `web-app/src/app/admin/page.tsx`, `web-app/src/app/portfolio/page.tsx`, `web-app/src/app/portfolio/category/[slug]/page.tsx`, `web-app/src/app/portfolio/[slug]/page.tsx`, `web-app/src/components/HomeView.tsx`, `AGENTS.md`
-- CMS/schema impact: Client-side persistent CMS store established.
-- Migration/env required: no
-- Verified: `npm run build` compiled cleanly with zero errors. Tested on local server.
-- Notes: User changes in admin immediately reflect across the public site.
-
-### 2026-09-27 — Floating Rounded Pill Navbar & Logo Green Animated Underlines
-- Changed:
-  1. **Rounded Architectural Navbar**: Replaced the sharp full-width block header with a refined floating rounded navigation container (`rounded-2xl`, subtle border, backdrop blur, and soft shadow) that gives a softer, modern, non-boxy appearance.
-  2. **Logo Green Underlines**:
-     - Added smooth animated underlines using the official logo green (*Sage Teal* `#6A9D94`) on active navigation links with Framer Motion spring physics (`layoutId="activeNavUnderline"`).
-     - Added interactive hover underline expansion (`group-hover:scale-x-100`) for all inactive menu items.
-  3. **Refined Rounded Elements**:
-     - Converted the Projects dropdown container to smooth `rounded-xl` with an elegant top green accent line.
-     - Styled the 'Inquire' CTA button with a sleek pill shape (`rounded-full`) and subtle logo-green border.
-- Files/areas: `web-app/src/components/Header.tsx`, `AGENTS.md`
-- CMS/schema impact: None (visual enhancement).
-- Migration/env required: no
-- Verified: `npm run build` compiled 22/22 static pages with zero errors. Tested on local server.
-- Notes: Header is now airy, slightly rounded, and harmoniously accented with the official logo green.
-
-### 2026-09-27 — Original Tectonic Blueprint Vector Line & Architectural Coordinate Nodes (About Page)
-- Changed:
-  1. Built a **distinctive, 100% original architectural blueprint continuous line** for the About page (`/about`) that does not copy external designs:
-     - Features an authentic technical drawing path with orthogonal stepped cantilevers, structural portals, and elevation steps tailored to Petta's tropical-structural engineering persona.
-     - Animated drawing via Framer Motion `useScroll` (`pathLength`), physically tracing the geometric skeleton as the visitor scrolls.
-     - Integrated animated technical coordinate nodes: `NODE_01 (SUMBU UTAMA)`, `ELEVASI +3.60m`, `KANTILEVER TROPIS`, and `PORTAL STRUKTUR GEMPA`.
-  2. Nested the **Philosophy** and **Mission** editorial text blocks inside frosted paper-white architectural containers (`bg-white/95 backdrop-blur-md`) that anchor directly into the vector grid.
-  3. Maintained the **Empat Pilar Perancangan Petta** (Tectonic Truth, Bioclimatic Sense, Legal Rigor, Cultural Resonance) and full Kendari studio pedigree.
-- Files/areas: `web-app/src/app/about/page.tsx`, `AGENTS.md`
-- CMS/schema impact: None (pure visual/motion upgrade).
-- Migration/env required: no
-- Verified: `npm run build` compiled 22/22 static pages with zero errors. Tested on local server.
-- Notes: Visual language is unique, highly aesthetic, and authentically architectural.
-
-### 2026-09-27 — Original Architectural Monograph & Interactive Tectonic Pillars (About Page)
-- Changed:
-  1. Replaced the external line-art copy with an **authentic, original architectural design language** crafted specifically for Petta Desain:
-     - **Editorial Manifesto Header**: "Arsitektur yang berpijak & bernapas" with metadata strip (EST. 2019 · Kendari · IAI).
-     - **Empat Pilar Perancangan Petta (The Tectonic Compass)**: Interactive dark-card matrix featuring:
-       1. Tectonic Truth (Ketepatan Tektonika & Mitigasi Gempa Sultra)
-       2. Bioclimatic Sense (Responsivitas Iklim Tropis Khatulistiwa)
-       3. Legal Rigor (Akuntabilitas PBG & SLF)
-       4. Cultural Resonance (Artikulasi Modern Nusantara)
-     - **Asymmetrical Editorial Spread**: Spatial narrative paired with dynamic studio coordinates card (`3°59'48"S · 122°30'49"E`) with parallax depth.
-     - **Founder & Collective Showcases**: Authentic presentation of Ir. Ar. Andi Al-Mustaghfir Syah, MT., IAI alongside core team members and official social channels.
-- Files/areas: `web-app/src/app/about/page.tsx`, `AGENTS.md`
-- CMS/schema impact: None (original design upgrade).
-- Migration/env required: no
-- Verified: `npm run build` compiled 22/22 static pages with zero errors. Tested on local server.
-- Notes: Design is 100% original, distinctive, and authentically reflects Petta Desain's architectural identity.
-
-### 2026-09-27 — Atelier Riri Signature Continuous Line-Art & Animated Philosophy
-- Changed:
-  1. Implemented the iconic **Continuous Architectural Skyline Line-Art** on the About page (`/about`) matching the Atelier Riri reference design screenshot.
-  2. Integrated Framer Motion `useScroll` + `pathLength` drawing animation: as the visitor scrolls down, the single continuous line vector physically traces the silhouette of modern roofs, cantilevers, stairs, and archways across **Philosophy** and **Mission**.
-  3. Added the signature design typography:
-     - Oversized editorial title: *"Shaping Beyond Spaces"* with side subtitle.
-     - Elegant cursive script subheadings (*"petta"*, *"petta studio"*) in classic serif italic font.
-     - Grid layout intertwining philosophy narrative and mission manifesto cleanly within the geometry of the architectural line.
-- Files/areas: `web-app/src/app/about/page.tsx`, `AGENTS.md`
-- CMS/schema impact: None (visual/motion parity refinement).
-- Migration/env required: no
-- Verified: `npm run build` compiled 22/22 static pages with zero errors. Tested on local server.
-- Notes: Visual identity matches reference design while maintaining authentic Petta Desain identity.
-
-Earlier history consolidated: original studio profile/content integration was established on 2026-09-27.  initial portfolio dropdown/category routing was established on 2026-09-27.  initial specification, Next.js foundation, original logo restoration, brand palette extraction (#14191E, #6A9D94, #C89975) and initial upload gating were established on 2026-09-27. Historical client-only admin implementations were superseded by Payload CMS. See current implementation state for verified behavior.
+Earlier history consolidated: initial branding, About design, navigation and client-only admin work were established in September 2026 and superseded by the current Payload CMS implementation. Historical details remain in git history.
 
 ## 21. REFERENCE PARITY NOTES
 

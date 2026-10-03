@@ -1,6 +1,7 @@
 "use client";
 
 import { useProjects } from "@/lib/ProjectContext";
+import { useStudioSettings } from "@/lib/SettingsContext";
 import React, { useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -50,6 +51,7 @@ const PILLARS = [
 
 export default function AboutPage() {
   const { team: STUDIO_TEAM } = useProjects();
+  const { settings } = useStudioSettings();
   const reducedMotion = useReducedMotion();
   const blueprintRef = useRef<HTMLDivElement>(null);
   const [activePillar, setActivePillar] = useState(0);
@@ -85,7 +87,7 @@ export default function AboutPage() {
           <div className="lg:col-span-4 space-y-5 pb-2">
             <p className="text-sm text-[#53606E] font-normal leading-[1.8]">
               <strong className="text-[#14191E]">Petta Desain (Petta Studio)</strong> didirikan oleh arsitek{" "}
-              <strong className="text-[#14191E]">Ir. Ar. Andi Al-Mustaghfir Syah, MT., IAI</strong>. Kami menolak perancangan yang sekadar dekoratif — setiap karya adalah harmoni terukur antara sains fisika bangunan, ketahanan gempa bumi, dan ketenangan jiwa manusia.
+              <strong className="text-[#14191E]">{settings.founder}</strong>. Kami menolak perancangan yang sekadar dekoratif — setiap karya adalah harmoni terukur antara sains fisika bangunan, ketahanan gempa bumi, dan ketenangan jiwa manusia.
             </p>
             <div className="flex items-center gap-3 pt-1">
               <span className="w-6 h-[1.5px] bg-[#6A9D94] shadow-[0_0_6px_1px_rgba(106,157,148,0.4)]" />
@@ -373,7 +375,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* 4. FOUNDER SPOTLIGHT: Ir. Ar. Andi Al-Mustaghfir Syah, MT., IAI */}
+      {/* 4. FOUNDER SPOTLIGHT */}
       <section className="max-w-7xl mx-auto px-6 md:px-12 mb-32">
         <div className="bg-[#14191E] text-white border border-[#242E38] shadow-2xl p-8 md:p-16">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
@@ -382,7 +384,7 @@ export default function AboutPage() {
               <div className="relative aspect-[3/4] w-full overflow-hidden bg-[#1C252E] border border-[#242E38]">
                 <Image
                   src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80"
-                  alt="Ir. Ar. Andi Al-Mustaghfir Syah, MT., IAI"
+                  alt={settings.founder}
                   fill
                   className="object-cover"
                   sizes="(max-width: 1024px) 100vw, 40vw"
@@ -402,11 +404,11 @@ export default function AboutPage() {
             <div className="lg:col-span-7 space-y-6">
               <div className="flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-[#6A9D94] font-semibold font-mono">
                 <Award className="w-4 h-4" />
-                <span>Founder & Principal Architect</span>
+                <span>{STUDIO_TEAM.find((member) => member.name === settings.founder)?.role || "Principal Architect / Design Director"}</span>
               </div>
 
               <h2 className="text-3xl md:text-5xl font-light text-white leading-tight">
-                Ir. Ar. Andi Al-Mustaghfir Syah, MT., IAI
+                {settings.founder}
               </h2>
 
               <p className="text-xs tracking-widest uppercase text-[#A2AFBD] font-mono">
@@ -513,13 +515,15 @@ export default function AboutPage() {
               className="group bg-white p-4 border border-[#E5E2DC] shadow-2xs hover:border-[#6A9D94] transition-all"
             >
               <div className="relative aspect-[3/4] overflow-hidden bg-[#14191E] mb-4">
-                <Image
+                {member.portrait ? <Image
                   src={member.portrait}
                   alt={member.name}
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-700"
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                />
+                /> : <div aria-hidden="true" className="flex h-full items-center justify-center text-5xl font-light tracking-widest text-[#6A9D94]">
+                  {member.name.split(",")[0].split(" ").filter((part) => !part.endsWith(".")).slice(0, 2).map((part) => part[0]).join("").toUpperCase()}
+                </div>}
               </div>
               <h3 className="text-base font-medium text-[#14191E] leading-snug">
                 {member.name}

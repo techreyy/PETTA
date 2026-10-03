@@ -1,3 +1,4 @@
+import { TEAM_ROSTER } from "./team-roster";
 export interface Project {
   id: string;
   slug: string;
@@ -509,36 +510,7 @@ export const PROJECTS: Project[] = [
   }
 ];
 
-export const STUDIO_TEAM = [
-  {
-    name: "Ir. Ar. Andi Al-Mustaghfir Syah, MT., IAI",
-    role: "Founder & Principal Architect",
-    instagram: "@aams_ir",
-    portrait: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80",
-    bio: "Arsitek profesional berlisensi Ikatan Arsitek Indonesia (IAI), praktisi perancangan berpengalaman, serta akademisi dan dosen arsitektur. Mendirikan Petta Desain sejak 2019 untuk menghadirkan arsitektur kontekstual berdaya tahan tinggi di Sulawesi Tenggara dan nasional."
-  },
-  {
-    name: "Aprial Rahmat",
-    role: "Architectural Design Lead",
-    instagram: "@ap_rialrahmat",
-    portrait: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=80",
-    bio: "Memimpin perancangan skematik arsitektur, kalkulasi fungsional tata ruang, serta pengembangan teknis detail perizinan PBG & SLF proyek komersial dan hunian."
-  },
-  {
-    name: "Reza Alvared",
-    role: "Interior & Spatial Designer",
-    instagram: "@reza.alvared",
-    portrait: "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=800&q=80",
-    bio: "Spesialis desain interior eksekutif, materialitas custom joinery kayu lokal, pencahayaan arsitektural, dan tata ruang privat residensial."
-  },
-  {
-    name: "Pratama Juna",
-    role: "3D Visualization & Computational Design",
-    instagram: "@prtmajuna",
-    portrait: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=800&q=80",
-    bio: "Mengembangkan visualisasi fotorealistik, simulasi animasi sinematik 3D, dan pemodelan parametrik struktur bangunan."
-  }
-];
+export const STUDIO_TEAM = TEAM_ROSTER.map((member) => ({ name: member.name, role: member.role, instagram: "", portrait: "", bio: "" }));
 
 export const BUSINESS_ENTITIES = [
   {
@@ -728,7 +700,7 @@ export const BRAND_LOGOS = {
 export const STUDIO_INFO = {
   name: "Petta Desain (Petta Arsitek / Petta Studio)",
   established: "2019",
-  founder: "Ir. Ar. Andi Al-Mustaghfir Syah, MT., IAI",
+  founder: TEAM_ROSTER[0].name,
   address: "Barokah Abadi Blok C-12, Kota Kendari, Sulawesi Tenggara 93118",
   workingAreas: "Kendari, Kolaka, Sulawesi Tenggara, serta layanan daring ke seluruh Indonesia",
   phone: "+62 822 9318 8899",
