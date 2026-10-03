@@ -70,6 +70,10 @@ export default buildConfig({
         disableLocalStorage: true,
       },
     },
+    // Browser PUTs the file straight to R2 using a presigned URL generated server-side by the
+    // official adapter (POST /api/storage-s3-generate-signed-url, authenticated users only).
+    // Credentials never leave the server.
+    clientUploads: true,
     bucket: s3Config.bucket,
     config: {
       endpoint: s3Config.endpoint,

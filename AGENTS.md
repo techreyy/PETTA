@@ -522,6 +522,12 @@ YYYY-MM-DD — Change title
 - Notes:
 ```
 
+### 2026-10-03 - R2 client-side direct uploads
+- Changed: `s3Storage` now sets `clientUploads: true`; the browser uploads via a presigned URL generated server-side by the official adapter (`/api/storage-s3-generate-signed-url`, authenticated users), then Payload creates the Media record. Regenerated admin importMap (adds `S3ClientUploadHandler`; regenerate with S3_* env set). Bucket CORS must allow https://pettadesain.id PUT. Credentials stay server-side; no imageSizes/crop/focalPoint/transforms.
+- Files/areas: src/payload.config.ts, src/app/(payload)/admin/importMap.js.
+- CMS/schema impact: none. Migration/env required: R2 bucket CORS policy only.
+- Verified: typecheck, lint, tests, build. Production upload not yet verified. Notes: with client uploads the file bypasses the server, so server-side mime/10MB limits and Sharp dimension reading do not apply to those uploads.
+
 ### 2026-10-03 - Re-enable plain Sharp for metadata only
 - Changed: Payload 3.90.2 generateFileData() calls getImageSize() for images; without `sharp` the image-dimensions fallback threw FileUploadError 400 on JPG. Re-added plain `sharp` (no wrapper) to Payload config. No imageSizes, adminThumbnail, crop, focalPoint, resize/format options; disableLocalStorage stays true in production; original file goes unmodified to R2.
 - Files/areas: src/payload.config.ts.
