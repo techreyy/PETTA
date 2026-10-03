@@ -454,6 +454,12 @@ Overall: CORE WEBSITE IMPLEMENTED; CMS PARITY AND PRODUCTION PERFORMANCE AUDIT R
 Only change `[ ]` to `[x]` after verification.
 
 Latest update (2026-10-03):
+- Actual File Buffer & Runtime Config Diagnostic in `Media.hooks.beforeOperation`:
+  1. Effective runtime configuration logging: logs `[runtime-config] disableLocalStorage=..., crop=..., focalPoint=..., imageSizes=[...]` without secrets;
+  2. Actual uploaded file inspection: logs `[actual-file] isBuffer=..., size=... bytes, mimetype=..., name=...`;
+  3. Direct Sharp diagnostic on user's actual `req.file.data` buffer: tests metadata, auto-rotate, 800w resize (`withoutEnlargement: true`), and 1800w resize (`withoutEnlargement: true`);
+  4. Per-stage logging: `[actual-file] metadata-ok`, `[actual-file] rotate-ok`, `[actual-file] card-ok`, `[actual-file] large-ok` (with error name, message, stack on failure);
+  5. Strictly read-only on the in-memory buffer without mutations or disk writes.
 - Payload Media Upload Pipeline Audit & Comprehensive Stage Logging: Implemented full stage logging pipeline across media upload lifecycle without credential leakage:
   1. `[media] request-received` with method, url, contentType and contentLength in `src/app/(payload)/api/[...slug]/route.ts`;
   2. `[media] file-received` in `Media.hooks.beforeOperation` logging filename, mimetype, size;
@@ -517,7 +523,7 @@ YYYY-MM-DD — Change title
 ```
 
 ### 2026-10-03 - Payload media upload pipeline audit, stage logging and Sharp diagnostic
-- Changed: Added full-lifecycle media upload stage logging ([media] request-received, file-received, sharp-start, sharp-success/error, db-create-start, db-create-success, storage-start, PutObject-start, PutObject-success/error, request-failed/success); hardened Media collection with `disableLocalStorage: isS3Configured()`, `focalPoint: false`, `crop: false`, `withoutEnlargement: true` on imageSizes, and automatic filename fallback for `alt`; created `scripts/diagnose-sharp.mjs` and registered `"diagnose:sharp"` in `package.json`; preserved standard build script `"next build --webpack"`.
+- Changed: Added live user-upload buffer diagnostic in `Media.hooks.beforeOperation` (logs runtime config: disableLocalStorage, crop, focalPoint, imageSizes; validates Buffer and size; runs Sharp metadata, rotate, 800w card, and 1800w large resize on actual uploaded bytes with [actual-file] status logging); added full-lifecycle media upload stage logging ([media] request-received, file-received, sharp-start, sharp-success/error, db-create-start, db-create-success, storage-start, PutObject-start, PutObject-success/error, request-failed/success); hardened Media collection with `disableLocalStorage: isS3Configured()`, `focalPoint: false`, `crop: false`, `withoutEnlargement: true` on imageSizes, and automatic filename fallback for `alt`; created `scripts/diagnose-sharp.mjs` and registered `"diagnose:sharp"` in `package.json`; preserved standard build script `"next build --webpack"`.
 - Files/areas: `src/cms/collections.ts`, `src/payload.config.ts`, `src/lib/s3-config.ts`, `src/app/(payload)/api/[...slug]/route.ts`, `scripts/diagnose-sharp.mjs`, `package.json`, `AGENTS.md`.
 - CMS/schema impact: None (presentation, hooks, and runtime hardening only; no schema or database migrations).
 - Migration/env required: No.
