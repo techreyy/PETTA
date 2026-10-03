@@ -22,6 +22,9 @@ registerHooks({
     ) {
       return { url: new URL(`${specifier}.ts`, lib).href, shortCircuit: true };
     }
+    if (context.parentURL === new URL("data.ts", lib).href && specifier === "./team-roster") {
+      return { url: new URL("team-roster.ts", lib).href, shortCircuit: true };
+    }
     return nextResolve(specifier, context);
   },
   load(url, context, nextLoad) {
@@ -33,7 +36,7 @@ registerHooks({
       };
     }
     if (
-      ["content.ts", "data.ts", "cms-ready.ts"].some(
+      ["content.ts", "data.ts", "cms-ready.ts", "team-roster.ts"].some(
         (name) => url === new URL(name, lib).href,
       )
     ) {

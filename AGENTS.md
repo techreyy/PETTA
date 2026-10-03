@@ -392,6 +392,8 @@ Accessibility:
 - never expose DB/storage credentials client-side
 - restrict destructive CMS actions by role
 
+Dependency security (2026-10-03): scoped overrides use undici 7.29.1 under Payload and dompurify 3.4.16 under Monaco. Do not force esbuild outside its parent range or run npm audit fix --force. Current audit: 18 total / 15 production findings, from active braces and nested esbuild advisories. The withdrawn Deno advisory is inapplicable; Monaco still vendors DOMPurify 3.4.15 without the reviewed IN_PLACE trigger. See web-app/docs/security/dependency-audit-2026-10-03.md for reachability, dev-only findings and the release gate.
+
 ## 16. RESPONSIVE QA
 
 Verify small/large phones, portrait/landscape tablets, laptop and large desktop.
@@ -452,7 +454,9 @@ Overall: CORE WEBSITE IMPLEMENTED; CMS PARITY AND PRODUCTION PERFORMANCE AUDIT R
 Only change `[ ]` to `[x]` after verification.
 
 Latest update (2026-10-03):
-- GitHub release: owner authorized committing and pushing the verified team update to origin/main. Existing Vercel integration handles deployment; no new schema or environment configuration required.
+- Dependency audit: undici patched to 7.29.1, dompurify to 3.4.16; incompatible legacy esbuild override removed without changing resolved esbuild versions. Audits: 25 to 18 total, 22 to 15 production, 3 exclusively devDependency findings. Two active advisory families remain; no upstream braces patch exists. Audit exit codes remain 1.
+- Verified npm install, all 59 tests, TypeScript, lint and production build. Fixed the test loader's existing team-roster import omission. Detailed report: web-app/docs/security/dependency-audit-2026-10-03.md. No schema/env changes. Owner explicitly approved commit/push of the tested patch with the remaining audit findings documented.
+- GitHub release: owner authorized committing and pushing the verified team update to origin/main. Hostinger GitHub integration handles deployment; no new schema or environment configuration required.
 - Updated eight team members, roles and order in CMS and fallback content; corrected founder credentials to S.Ars., M.Ars., IAI. About reads founder settings and renders initials for missing team portraits.
 - Applied data migration 20261003_090000_team_roster locally; eight active names/roles/order verified against the supplied roster. Existing portraits are preserved, superseded profiles are inactive. No schema or environment changes; cloud applies the migration on deployment.
 - Final TypeScript, ESLint and production build passed. Browser responsive QA has not been performed for this update.
@@ -497,13 +501,21 @@ YYYY-MM-DD — Change title
 - Notes:
 ```
 
+### 2026-10-03 - Dependency security audit and compatible patches
+- Changed: Scoped undici 7.29.1 and DOMPurify 3.4.16 overrides; removed out-of-range esbuild override. Preserved Linux lockfile selectors and corrected the test-only team-roster import resolution. Documented active/withdrawn advisories and Monaco's vendored-copy limitation.
+- Files/areas: package.json, package-lock.json, tests/content-loader.mjs, docs/security/dependency-audit-2026-10-03.md, both AGENTS.md files.
+- CMS/schema impact: None; no studio data modified.
+- Migration/env required: No. Deploy through GitHub main to Hostinger, as clarified by the owner.
+- Verified: npm install, 59 tests, TypeScript, ESLint and production build passed. npm audit completed with 18 findings (previously 25); omit-dev with 15 (previously 22), both exit 1. Three findings are exclusively devDependency paths. npm ls passed.
+- Notes: No forced upgrades or audit fix used. Remaining braces has no published fix; esbuild requires an upstream-compatible parent update. Owner explicitly approved committing and pushing the tested patch despite the documented residual audit findings.
+
 ### 2026-10-03 - Owner-approved eight-member studio team
 - Changed: Updated eight names, credentials, roles and ordering; About founder text now reads CMS settings and missing team portraits use initials.
 - Files/areas: lib/team-roster.ts, lib/data.ts, lib/content.ts, About page, migrations/index.ts, 20261003_090000_team_roster.ts, both AGENTS.md files.
 - CMS/schema impact: Team content update, existing photos preserved, duplicate/superseded demo profiles retained inactive. No schema change.
 - Migration/env required: Data migration applied locally; production applies it on deployment. No new environment variables.
 - Verified: Eight active CMS members match supplied names, roles and order; TypeScript, lint and build passed. Final repeat checks passed; responsive browser QA not performed.
-- Notes: Existing pending catalog seed also ran during local migration. Owner requested GitHub delivery on 2026-10-03; release path is origin/main with the existing Vercel integration. Production deployment health is verified separately from git push.
+- Notes: Existing pending catalog seed also ran during local migration. Owner requested GitHub delivery on 2026-10-03; release path is origin/main with the Hostinger GitHub integration. Production deployment health is verified separately from git push.
 
 ### 2026-10-02 - Use Webpack bundler explicitly in build script
 - Changed: Updated `build` script in `package.json` to `next build --webpack`.
@@ -697,18 +709,7 @@ YYYY-MM-DD — Change title
 - Verified: `npm run test` passed 9/9 tests; `npm run build` compiled with 0 errors.
 - Notes: Satisfies user request to style the Admin UI to match the website's architectural aesthetic.
 
-### 2026-09-27 — Awards & Sayembara Dedicated Page, Main Navigation Integration & Admin Health Check
-- Changed:
-  1. **Awards & Sayembara Route (`/awards`)**: Implemented dedicated architectural page showcasing Petta Desain's official awards, recognitions (IAI Sultra, Hospitality Citations, Residential Tectonics), and design competition proposals (Sayembara Gerbang Teluk Kendari, Sayembara Pusat Kebudayaan Bahari, Sayembara Fasad Hijau). Includes interactive tabs (`Semua`, `Awards & Recognitions`, `Sayembara Arsitektur`) and architectural card layouts with official status indicators.
-  2. **Primary Navigation Bar**: Added "Awards & Sayembara" directly to the main desktop navbar and mobile slide-out drawer with Framer Motion animated active indicators and responsive layout. Also linked in Footer navigation.
-  3. **Data & State Management**: Integrated `STUDIO_AWARDS` and `STUDIO_COMPETITIONS` data structures into `data.ts` and `ProjectContext.tsx`.
-  4. **Admin & CMS Verification**: Verified PostgreSQL & Payload CMS `/admin` operation, access controls, collection permissions, contact rate-limits, and server routes. All 9 automated tests passed cleanly, and production build compiled with zero errors across all static & dynamic routes.
-- Files/areas: `web-app/src/app/(site)/awards/page.tsx`, `web-app/src/components/Header.tsx`, `web-app/src/components/Footer.tsx`, `web-app/src/lib/data.ts`, `web-app/src/lib/ProjectContext.tsx`, `AGENTS.md`
-- CMS/schema impact: Awards and Competitions data models integrated.
-- Migration/env required: no
-- Verified: `npm run test` passed 9/9 tests; `npm run build` compiled 100% cleanly.
-- Notes: Satisfies user request for dedicated Awards and Sayembara navigation and admin verification.
-Earlier history consolidated: initial branding, About design, navigation and client-only admin work were established in September 2026 and superseded by the current Payload CMS implementation. Historical details remain in git history.
+Earlier history consolidated: initial branding, navigation, About and admin work were established in September 2026 and superseded by the current Payload CMS implementation. Historical details remain in git history.
 
 ## 21. REFERENCE PARITY NOTES
 

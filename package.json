@@ -52,8 +52,11 @@
   },
   "type": "module",
   "overrides": {
-    "@esbuild-kit/core-utils": {
-      "esbuild": "0.25.12"
+    "payload": {
+      "undici": "7.29.1"
+    },
+    "monaco-editor": {
+      "dompurify": "3.4.16"
     }
   }
 }
