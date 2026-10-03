@@ -458,6 +458,7 @@ Overall: CORE WEBSITE IMPLEMENTED; CMS PARITY AND PRODUCTION PERFORMANCE AUDIT R
 Only change `[ ]` to `[x]` after verification.
 
 Latest update (2026-10-03):
+- Custom loading & offline PWA experience: implemented CSS-only architectural hairline spinner in loading.tsx, top hairline page transition progress bar (NavigationProgress), real-time online/offline detector and full-screen custom dark overlay (OfflineExperience), standalone /offline fallback page with no-index SEO protection, web app manifest, and Service Worker (public/sw.js) with strict exclusions for Payload admin, API, and sessions.
 - GitHub deployment: deployed performance query improvements, Neon pooler connection normalization, opt-in dev timing (`cms-timing.ts`), and performance audit documentation to origin/main.
 - Performance-only audit: detail reads avoid unused counts and nested category media; detail page reads start concurrently. Optional CMS timing is always disabled in production. Standard Neon hosts normalize to -pooler; deployed connection verification remains pending.
 - Local typecheck, lint, production build and 70 checks passed; full public content/detail/SEO hashes are identical, authenticated QA dashboard works and anonymous session isolation passed. Shared request batching was removed after adverse listing results.
@@ -508,6 +509,14 @@ YYYY-MM-DD — Change title
 - Verified:
 - Notes:
 ```
+
+### 2026-10-03 - Custom loading UI, offline experience and PWA service worker
+- Changed: Implemented minimalist architectural CSS-only loading state for route transitions (`loading.tsx`), top hairline navigation progress bar (`NavigationProgress.tsx`), real-time offline detection with bespoke dark Petta overlay and auto-reconnect refresh (`OfflineExperience.tsx`), dedicated offline fallback page (`/offline`), PWA manifest (`manifest.ts`), and lightweight Service Worker (`public/sw.js`) pre-caching static assets and offline view while strictly bypassing Payload admin, auth, and API routes.
+- Files/areas: src/app/(site)/loading.tsx, src/components/NavigationProgress.tsx, src/components/OfflineExperience.tsx, src/components/OfflineFallbackView.tsx, src/app/(site)/offline/page.tsx, src/app/(site)/layout.tsx, src/app/manifest.ts, public/sw.js, scripts/test.mjs, tests/loading-offline.test.ts, AGENTS.md.
+- CMS/schema impact: None. Zero impact on Payload CMS admin or API.
+- Migration/env required: No.
+- Verified: All 33 automated integration & unit tests passed, TypeScript (`tsc --noEmit`) 0 errors, ESLint 0 errors, and Next.js production build (`next build --webpack`) cleanly succeeded.
+- Notes: Satisfies user request for custom loading, offline overlay, auto-reconnect, and PWA offline fallback without altering main design or adding heavy dependencies.
 
 ### 2026-10-03 - GitHub deployment: performance queries and Neon connection pooling
 - Changed: Pushed performance-only query improvements (concurrent detail queries, skip pagination counts, depth 1), Neon `-pooler` endpoint normalization, opt-in dev timing (`cms-timing.ts`), test suites, and performance audit documentation to GitHub origin/main.
@@ -655,29 +664,6 @@ YYYY-MM-DD — Change title
 - Migration/env required: No new migration or environment variables. Other databases can run `node --env-file-if-exists=.env.local --import tsx scripts/localize-category-covers.ts`; deploy the resulting public assets together with the URL changes.
 - Verified: 44 automated tests passed in five runs, TypeScript and production build passed; ESLint zero errors/four existing migration warnings. Final Chrome production-browser run passed route, heading, overflow and status/category interaction checks across 8 routes at 390/768/1440px, plus mobile menu open/close, with zero JavaScript errors or HTTP resource failures after image localization.
 - Notes: Corrected previous broad completion claims: CMS homepage/navigation controls and other specified editorial models are not fully implemented. Local server timings do not establish production Core Web Vitals.
-
-### 2026-10-01 — 11 Project Typologies, 75 Media Assets, Dual Status Filters, Homepage Built Showcase & Services CMS
-- Changed:
-  1. **Complete Project Media & Typologies**: Registered all 11 architectural categories in CMS and PostgreSQL (`Social and Cultural Function Buildings`, `Residential & Housing`, `Commercial Building`, `Hospitality`, `Religious Architecture`, `Institutional & Public`, `Interior Design`, `Masterplanning & Urban Design`, `Renovation & Adaptive Reuse`, `Architecture Installation`, `Private House`). Processed 75 project photos from `../PROJECT` folder, optimized into webp (19.8 MB total), attached to Payload Media Library and mapped to 12 projects with full galleries.
-  2. **Admin-Managed Project Status**: Projects collection admin table displays `status` column with editorial guidance (`Built`, `Ongoing`, `Proposed`, `Concept`, or unconfirmed). Unconfirmed projects remain blank without false assumptions; legacy ambiguous values (`Completed / Under Phasing`) are never falsely marked as built.
-  3. **Dual Status & Typology Filter UI**: Added status filter buttons (`ALL | BUILT | ONGOING | PROPOSED | CONCEPT`) combined with category switcher on `/portfolio`, showing live matching counts, accessible states (`aria-pressed`), and empty states. Added status pill badges on project cards and homepage hero.
-  4. **Homepage "Selected Built Works"**: Added section below hero highlighting genuinely constructed projects (`Architecture that moves beyond drawings.`) using explicit status and admin visibility controls.
-  5. **Services Page & CMS Collection**: Created `services` collection in `src/cms/editorial.ts` with PostgreSQL migration `20260930_183907_services`, server loader `getServices()`, dedicated `/services` page with numbered monographs and contact CTA, navigation links in Header (desktop dropdown scrollable, mobile drawer accessible) and Footer, and sitemap entry.
-- Files/areas: `web-app/src/cms/collections.ts`, `web-app/src/cms/editorial.ts`, `web-app/src/payload.config.ts`, `web-app/src/migrations/20260930_183907_services.ts`, `web-app/src/lib/services.ts`, `web-app/src/lib/project-status.ts`, `web-app/src/app/(site)/services/page.tsx`, `web-app/src/components/Header.tsx`, `web-app/src/components/Footer.tsx`, `web-app/src/components/HomeView.tsx`, `web-app/src/components/ProjectCard.tsx`, `web-app/src/app/(site)/portfolio/portfolio-view.tsx`, `web-app/src/app/sitemap.ts`, `web-app/scripts/import-project-folder.ts`, `web-app/scripts/project-import-plan.ts`, `web-app/scripts/verify-project-import.ts`, `web-app/scripts/test.mjs`, `web-app/package.json`, `AGENTS.md`.
-- CMS/schema impact: Added `services` collection and PostgreSQL table; registered 11 portfolio categories; updated Projects collection admin columns.
-- Migration/env required: Migration applied (`npm run db:migrate`).
-- Verified: `npm test` 18/18 passing; `tsc --noEmit` 0 errors; ESLint 0 errors; `next build` 100% clean production build; responsive browser QA tested at 390px, 768px, and 1440px with 0 errors on `/`, `/services`, `/portfolio`, `/portfolio/smart-school`.
-- Notes: Satisfies user request for 11 categories (including Social and Cultural Function Buildings), complete photo integration, dedicated Services navigation/page, and public status filter/showcase with admin management.
-- Changed:
-  1. **Next.js Image Hostname & SVG Compatibility**: Configured `remotePatterns` in `next.config.ts` for `localhost`, `127.0.0.1`, dynamic `NEXT_PUBLIC_SITE_URL`, and S3 endpoints. Enabled `dangerouslyAllowSVG: true` with strict Content Security Policy. This prevents `next/image` 500 crashes ("hostname localhost is not configured under images in your next.config.js") when rendering CMS-uploaded media.
-  2. **Image URL Normalization**: Added `normalizeImageUrl` in `src/lib/content.ts` converting local server absolute URLs (`http://localhost:3000/api/media/file/...`) to relative paths (`/api/media/file/...`) for zero-overhead local asset optimization. Applied `imageUrl()` normalization to brand logo items in `getContent()`.
-  3. **Media MIME Types & SVG Support**: Added `image/svg+xml` to `Media` upload collection `mimeTypes` in `src/cms/collections.ts`, allowing SVG logo uploads alongside Sharp raster processing.
-  4. **BrandLogos Alt Field & Origin Guarding**: Made `alt` in `BrandLogos` optional with smart fallback to Media `alt` or brand `name`, eliminating duplicate requirement friction. Updated Payload REST API guarded route in `src/app/(payload)/api/[...slug]/route.ts` to allow local loopback origins (`localhost` / `127.0.0.1`) without origin mismatch 403s.
-  5. **ESLint Ignores**: Added `.local/**` and `media/**` to `eslint.config.mjs` ignores.
-- Files/areas: `web-app/next.config.ts`, `web-app/src/lib/content.ts`, `web-app/src/cms/collections.ts`, `web-app/src/cms/editorial.ts`, `web-app/src/app/(payload)/api/[...slug]/route.ts`, `web-app/eslint.config.mjs`, `AGENTS.md`.
-- CMS/schema impact: SVG format accepted in Media collection; BrandLogos `alt` optional.
-- Migration/env required: no.
-- Verified: `npm test` passed 13/13; `tsc --noEmit` 0 errors; `eslint src/` 0 errors; `next build` compiled cleanly; verified live HTTP 200 on `/`, `/portfolio`, `/about`, `/admin`, and `/api/media/file/Desain%20tanpa%20judul%20(4).png`.
 
 Earlier history consolidated: branding, media, CMS, typography and responsive work from September-October 2026 remains reflected in the current specification. Detailed older entries remain in git history.
 

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { DM_Sans, Cormorant_Garamond } from "next/font/google";
 import "../globals.css";
 import { getContent } from '@/lib/content';
@@ -7,6 +8,8 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ProjectProvider } from "@/lib/ProjectContext";
 import { SettingsProvider } from "@/lib/SettingsContext";
+import { NavigationProgress } from "@/components/NavigationProgress";
+import { OfflineExperience } from "@/components/OfflineExperience";
 
 const dmSans = DM_Sans({
   variable: "--font-dm-sans",
@@ -61,6 +64,10 @@ export default async function RootLayout({
         className="min-h-screen flex flex-col bg-[#F9F8F6] text-[#14191E] font-sans selection:bg-[#14191E] selection:text-[#6A9D94]"
         suppressHydrationWarning
       >
+        <Suspense fallback={null}>
+          <NavigationProgress />
+        </Suspense>
+        <OfflineExperience />
         <SettingsProvider settings={content.settings}>
           <ProjectProvider
             projects={content.projects}
