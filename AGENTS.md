@@ -522,6 +522,20 @@ YYYY-MM-DD — Change title
 - Notes:
 ```
 
+### 2026-10-03 - Re-enable plain Sharp for metadata only
+- Changed: Payload 3.90.2 generateFileData() calls getImageSize() for images; without `sharp` the image-dimensions fallback threw FileUploadError 400 on JPG. Re-added plain `sharp` (no wrapper) to Payload config. No imageSizes, adminThumbnail, crop, focalPoint, resize/format options; disableLocalStorage stays true in production; original file goes unmodified to R2.
+- Files/areas: src/payload.config.ts.
+- CMS/schema impact: none. Migration/env required: no.
+- Verified: typecheck, lint, tests, build (see task result). Production JPG/PNG upload to R2 still to be verified after deploy.
+
+### 2026-10-03 - Raw Media upload (temporary simplification)
+- Changed: Media collection reduced to raw upload: removed imageSizes and adminThumbnail, focalPoint/crop false, disableLocalStorage true in production; removed `sharp` from Payload config and the Sharp wrapper plus [actual-file] Sharp diagnostics (supersedes the entry below). Kept mimeTypes, 10MB limit and alt/caption. Originals go straight to Cloudflare R2.
+- Files/areas: src/cms/collections.ts, src/payload.config.ts.
+- CMS/schema impact: Existing sizes_* DB columns left untouched; no migration. Neon/R2/provider unchanged.
+- Migration/env required: no.
+- Verified: tests 28/28, tsc, eslint, production build passed. Production JPG/PNG upload to R2 NOT yet verified; no new features until proven.
+- Notes: Admin thumbnails/responsive sizes are temporarily unavailable.
+
 ### 2026-10-03 - Payload media upload pipeline audit, stage logging and Sharp diagnostic
 - Changed: Added live user-upload buffer diagnostic in `Media.hooks.beforeOperation` (logs runtime config: disableLocalStorage, crop, focalPoint, imageSizes; validates Buffer and size; runs Sharp metadata, rotate, 800w card, and 1800w large resize on actual uploaded bytes with [actual-file] status logging); added full-lifecycle media upload stage logging ([media] request-received, file-received, sharp-start, sharp-success/error, db-create-start, db-create-success, storage-start, PutObject-start, PutObject-success/error, request-failed/success); hardened Media collection with hardcoded `disableLocalStorage: true` on production (`process.env.NODE_ENV === 'production' || Boolean(process.env.S3_BUCKET) ? true : isS3Configured()`) and in `s3Storage` collection options, `focalPoint: false`, `crop: false`, `withoutEnlargement: true` on imageSizes, and automatic filename fallback for `alt`; created `scripts/diagnose-sharp.mjs` and registered `"diagnose:sharp"` in `package.json`; preserved standard build script `"next build --webpack"`.
 - Files/areas: `src/cms/collections.ts`, `src/payload.config.ts`, `src/lib/s3-config.ts`, `src/app/(payload)/api/[...slug]/route.ts`, `scripts/diagnose-sharp.mjs`, `package.json`, `AGENTS.md`.

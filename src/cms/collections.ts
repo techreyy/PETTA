@@ -1,6 +1,5 @@
 import type { CollectionConfig, Field } from 'payload';
 import { APIError } from 'payload';
-import sharp from 'sharp';
 import { canPublish, isOwner, isStaff, ownerField, protectPublishing, publishedOrStaff } from './access';
 import { normalizeS3Config, getMissingS3Vars, isS3Configured } from '../lib/s3-config';
 
@@ -62,13 +61,9 @@ export const Media: CollectionConfig = {
     staticDir: 'media',
     disableLocalStorage: process.env.NODE_ENV === 'production' || Boolean(process.env.S3_BUCKET) ? true : isS3Configured(),
     mimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/svg+xml'],
-    imageSizes: [
-      { name: 'card', width: 800, withoutEnlargement: true },
-      { name: 'large', width: 1800, withoutEnlargement: true },
-    ],
+    // Raw upload: no generated sizes, crop, focal point or thumbnails; no Sharp processing.
     focalPoint: false,
     crop: false,
-    adminThumbnail: 'card',
   },
   fields: [
     {
@@ -88,7 +83,7 @@ export const Media: CollectionConfig = {
     { name: 'caption', type: 'text' },
   ],
   hooks: {
-    beforeOperation: [async ({ operation, req, collection }) => {
+    beforeOperation: [async ({ operation, req }) => {
       if (['create', 'update'].includes(operation)) {
         if (req?.file) {
           const isBuffer = Buffer.isBuffer(req.file.data);
@@ -96,59 +91,6 @@ export const Media: CollectionConfig = {
           console.log(`[media] file-received: name="${req.file.name}" mimetype="${req.file.mimetype}" size=${req.file.size}b`);
           console.log(`[actual-file] isBuffer=${isBuffer}, size=${bufferSize} bytes, mimetype="${req.file.mimetype}", name="${req.file.name}"`);
 
-          // 1. Log effective runtime configuration (no secrets)
-          const effectiveUpload = (collection?.upload || Media.upload) as Record<string, unknown>;
-          const effectiveDisableLocalStorage = effectiveUpload?.disableLocalStorage;
-          const effectiveCrop = effectiveUpload?.crop;
-          const effectiveFocalPoint = effectiveUpload?.focalPoint;
-          const effectiveImageSizes = Array.isArray(effectiveUpload?.imageSizes)
-            ? (effectiveUpload.imageSizes as Array<{ name?: string }>).map((s) => s?.name || 'unknown').join(', ')
-            : 'none';
-
-          console.log(
-            `[runtime-config] disableLocalStorage=${String(effectiveDisableLocalStorage)}, crop=${String(effectiveCrop)}, focalPoint=${String(effectiveFocalPoint)}, imageSizes=[${effectiveImageSizes}]`
-          );
-
-          // 2. Diagnostic on actual user uploaded buffer
-          if (isBuffer && req.file.data) {
-            try {
-              const meta = await sharp(req.file.data).metadata();
-              console.log(`[actual-file] metadata-ok: format=${meta.format}, ${meta.width}x${meta.height}, space=${meta.space}`);
-            } catch (err: unknown) {
-              const error = (typeof err === 'object' && err !== null ? err : {}) as Record<string, unknown>;
-              console.error(`[actual-file] metadata-error: ${error.name || 'Error'}: ${error.message || String(err)}`);
-              if (typeof error.stack === 'string') console.error(`[actual-file] metadata-error stack:\n${error.stack}`);
-            }
-
-            try {
-              const rotated = await sharp(req.file.data).rotate().toBuffer();
-              console.log(`[actual-file] rotate-ok: ${rotated.length} bytes`);
-            } catch (err: unknown) {
-              const error = (typeof err === 'object' && err !== null ? err : {}) as Record<string, unknown>;
-              console.error(`[actual-file] rotate-error: ${error.name || 'Error'}: ${error.message || String(err)}`);
-              if (typeof error.stack === 'string') console.error(`[actual-file] rotate-error stack:\n${error.stack}`);
-            }
-
-            try {
-              const card = await sharp(req.file.data).resize({ width: 800, withoutEnlargement: true }).toBuffer();
-              console.log(`[actual-file] card-ok: ${card.length} bytes`);
-            } catch (err: unknown) {
-              const error = (typeof err === 'object' && err !== null ? err : {}) as Record<string, unknown>;
-              console.error(`[actual-file] card-error: ${error.name || 'Error'}: ${error.message || String(err)}`);
-              if (typeof error.stack === 'string') console.error(`[actual-file] card-error stack:\n${error.stack}`);
-            }
-
-            try {
-              const large = await sharp(req.file.data).resize({ width: 1800, withoutEnlargement: true }).toBuffer();
-              console.log(`[actual-file] large-ok: ${large.length} bytes`);
-            } catch (err: unknown) {
-              const error = (typeof err === 'object' && err !== null ? err : {}) as Record<string, unknown>;
-              console.error(`[actual-file] large-error: ${error.name || 'Error'}: ${error.message || String(err)}`);
-              if (typeof error.stack === 'string') console.error(`[actual-file] large-error stack:\n${error.stack}`);
-            }
-          } else {
-            console.warn(`[actual-file] req.file.data is not a Buffer (type=${typeof req.file.data}). Skipping Sharp actual-file test.`);
-          }
         } else {
           console.warn(`[media] file-received: NO file on req for operation=${operation}`);
         }
