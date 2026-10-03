@@ -59,7 +59,21 @@ function guarded(handler: (request: Request, context: Context) => Promise<Respon
         if (!isAllowed) return Response.json({ message: 'Invalid origin.' }, { status: 403 });
       }
     }
-    return handler(request, context);
+    try {
+      const response = await handler(request, context);
+      if (response.status >= 400 && slug[0] === 'media') {
+        console.error(`[API /api/${slug.join('/')}] Returned status ${response.status} for ${request.method}`);
+      }
+      return response;
+    } catch (err: unknown) {
+      if (slug[0] === 'media') {
+        const error = (typeof err === 'object' && err !== null ? err : {}) as Record<string, unknown>;
+        const name = typeof error.name === 'string' ? error.name : 'Error';
+        const message = typeof error.message === 'string' ? error.message : String(err);
+        console.error(`[API /api/${slug.join('/')}] Upload exception: ${name}: ${message}`);
+      }
+      throw err;
+    }
   };
 }
 export const GET = guarded(REST_GET(config));

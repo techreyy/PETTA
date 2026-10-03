@@ -454,6 +454,11 @@ Overall: CORE WEBSITE IMPLEMENTED; CMS PARITY AND PRODUCTION PERFORMANCE AUDIT R
 Only change `[ ]` to `[x]` after verification.
 
 Latest update (2026-10-03):
+- PostgreSQL TLS & Neon Audit: Resolved runtime pg warning regarding `sslmode=require` by sanitizing `DATABASE_URI` via `sanitizeDatabaseUri` and `getDatabaseConfig`. Enforced strict `sslmode=verify-full` on remote hosts without downgrading certificate validation (completely eliminated `{ rejectUnauthorized: false }`). Updated inquiry rate limit pool and error boundary guidance.
+- Cloudflare R2 / S3 Storage Audit & Logging: Created `src/lib/s3-config.ts` normalizing `S3_BUCKET`, `S3_ENDPOINT` (enforces https:// protocol, strips trailing slash/bucket suffix), `S3_REGION=auto`, and `forcePathStyle=true`. Added `createSafeS3Logger()` for AWS SDK v3 logging and added `beforeOperation`/`afterError` hooks on Media collection to log comprehensive upload diagnostics (file metadata, command, bucket, key, HTTP status, AWS error name and message) server-side without leaking credentials or secret keys. Updated `.env.example`.
+- Verified: `npm test` passed 28/28 tests across 20 suites, TypeScript (`tsc --noEmit`) 0 errors, ESLint 0 errors, Next.js production build (`next build --webpack`) 100% clean.
+
+Previous update (2026-10-03):
 - Dependency audit: undici patched to 7.29.1, dompurify to 3.4.16; incompatible legacy esbuild override removed without changing resolved esbuild versions. Audits: 25 to 18 total, 22 to 15 production, 3 exclusively devDependency findings. Two active advisory families remain; no upstream braces patch exists. Audit exit codes remain 1.
 - Verified npm install, all 59 tests, TypeScript, lint and production build. Fixed the test loader's existing team-roster import omission. Detailed report: web-app/docs/security/dependency-audit-2026-10-03.md. No schema/env changes. Owner explicitly approved commit/push of the tested patch with the remaining audit findings documented.
 - GitHub release: owner authorized committing and pushing the verified team update to origin/main. Hostinger GitHub integration handles deployment; no new schema or environment configuration required.
@@ -500,6 +505,14 @@ YYYY-MM-DD — Change title
 - Verified:
 - Notes:
 ```
+
+### 2026-10-03 - Neon PostgreSQL TLS verify-full and Cloudflare R2 upload resilience
+- Changed: Normalised DATABASE_URI to use sslmode=verify-full on Neon connections, eliminating driver deprecation warnings while strictly maintaining full TLS CA and hostname verification. Removed rejectUnauthorized: false. Built s3-config utility ensuring Cloudflare R2 requirements (https:// endpoint, region=auto, forcePathStyle=true, trimmed credentials) and implemented safe, non-leaking server-side error logging across S3 client logger, Media beforeOperation/afterError hooks, and Payload API route handler.
+- Files/areas: src/lib/db-config.ts, src/lib/s3-config.ts, src/payload.config.ts, src/cms/collections.ts, src/lib/inquiry-rate-limit.ts, src/app/(payload)/api/[...slug]/route.ts, src/app/(payload)/error.tsx, .env.example, scripts/test.mjs, tests/db-config.test.ts, tests/s3-config.test.ts, AGENTS.md.
+- CMS/schema impact: None (infrastructure and logging audit only).
+- Migration/env required: No database migration. Hostinger production DATABASE_URI can use ?sslmode=verify-full, and Cloudflare R2 env vars are verified.
+- Verified: All 28 automated tests passed (including new db-config and s3-config test suites), tsc --noEmit 0 errors, eslint 0 errors, next build compiled all 20 routes cleanly.
+- Notes: Solves Hostinger production runtime warnings and enables clear server-side visibility for Cloudflare R2 uploads without exposing credentials.
 
 ### 2026-10-03 - Dependency security audit and compatible patches
 - Changed: Scoped undici 7.29.1 and DOMPurify 3.4.16 overrides; removed out-of-range esbuild override. Preserved Linux lockfile selectors and corrected the test-only team-roster import resolution. Documented active/withdrawn advisories and Monaco's vendored-copy limitation.

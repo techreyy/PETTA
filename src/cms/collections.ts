@@ -1,6 +1,7 @@
 import type { CollectionConfig, Field } from 'payload';
 import { APIError } from 'payload';
 import { canPublish, isOwner, isStaff, ownerField, protectPublishing, publishedOrStaff } from './access';
+import { normalizeS3Config, getMissingS3Vars } from '../lib/s3-config';
 
 const slug: Field = { name: 'slug', type: 'text', required: true, unique: true, index: true,
   hooks: { beforeValidate: [({ value, originalDoc, siblingData }) => value || originalDoc?.slug || String(siblingData?.title || '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')] },
@@ -59,11 +60,42 @@ export const Media: CollectionConfig = {
   upload: { staticDir: 'media', mimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/svg+xml'],
     imageSizes: [{ name: 'card', width: 800 }, { name: 'large', width: 1800 }], adminThumbnail: 'card' },
   fields: [{ name: 'alt', type: 'text', required: true }, { name: 'caption', type: 'text' }],
-  hooks: { beforeOperation: [({ operation, req }) => {
-    if (['create', 'update'].includes(operation) && req.file && process.env.NODE_ENV === 'production' && !process.env.S3_BUCKET) {
-      throw new APIError('Production media storage is not configured.', 503);
-    }
-  }], beforeDelete: [async ({ id, req }) => {
+  hooks: {
+    beforeOperation: [({ operation, req }) => {
+      if (['create', 'update'].includes(operation) && req.file) {
+        const s3 = normalizeS3Config();
+        const missing = getMissingS3Vars(s3);
+        if (process.env.NODE_ENV === 'production' && missing.length > 0) {
+          console.error(`[Payload Media Error] Production upload aborted: missing S3/R2 configuration: ${missing.join(', ')}`);
+          throw new APIError(`Production media storage is not properly configured. Missing environment variables: ${missing.join(', ')}. Please check your Hostinger configuration.`, 503);
+        }
+        if (s3.bucket) {
+          console.log(`[Payload Media] Starting upload: file="${req.file.name}" (${req.file.mimetype}, ${req.file.size} bytes), bucket="${s3.bucket}", region="${s3.region}"`);
+        }
+      }
+    }],
+    afterError: [({ error, collection, req }) => {
+      const err = (typeof error === 'object' && error !== null ? error : {}) as Record<string, unknown>;
+      const metadata = (typeof err.$metadata === 'object' && err.$metadata !== null ? err.$metadata : {}) as Record<string, unknown>;
+      const status = metadata.httpStatusCode ?? err.status ?? err.statusCode ?? 500;
+      const errorName = typeof err.name === 'string' ? err.name : 'Error';
+      const errorMessage = typeof err.message === 'string' ? err.message : String(error);
+      const code = typeof err.code === 'string' ? err.code : (typeof err.Code === 'string' ? err.Code : 'N/A');
+      const requestId = typeof metadata.requestId === 'string' ? metadata.requestId : undefined;
+
+      console.error(
+        `[Payload Media Error] Operation failed on "${collection?.slug || 'media'}": ` +
+        `name=${errorName}, code=${code}, status=${String(status)}, message="${errorMessage}"` +
+        (requestId ? `, requestId=${requestId}` : '') +
+        (req?.file ? `, file="${req.file.name}" (${req.file.mimetype}, ${req.file.size} bytes)` : '')
+      );
+
+      if (typeof err.stack === 'string') {
+        const stackSummary = err.stack.split('\n').slice(0, 5).join('\n');
+        console.error(`[Payload Media Error Stack]\n${stackSummary}`);
+      }
+    }],
+    beforeDelete: [async ({ id, req }) => {
     const projects = await req.payload.find({ collection: 'projects', limit: 1, depth: 0, req,
       where: { or: [{ heroImage: { equals: id } }, { 'gallery.image': { equals: id } }, { 'seo.image': { equals: id } }] } });
     const drafts = await req.payload.findVersions({ collection: 'projects', limit: 1, depth: 0, req,

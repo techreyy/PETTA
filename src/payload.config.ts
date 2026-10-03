@@ -13,10 +13,13 @@ import { BrandLogos, Services } from './cms/editorial';
 import { isOwner } from './cms/access';
 import { STUDIO_INFO } from './lib/data';
 import { migrations } from './migrations';
+import { getDatabaseConfig } from './lib/db-config';
+import { normalizeS3Config, isS3Configured, createSafeS3Logger } from './lib/s3-config';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const isLocalDb = !process.env.DATABASE_URI || process.env.DATABASE_URI.includes('localhost') || process.env.DATABASE_URI.includes('127.0.0.1');
+const dbConfig = getDatabaseConfig();
+const s3Config = normalizeS3Config();
 
 export default buildConfig({
   i18n: { supportedLanguages: { id, en }, fallbackLanguage: 'id' },
@@ -33,9 +36,9 @@ export default buildConfig({
   },
   db: postgresAdapter({
     pool: {
-      connectionString: process.env.DATABASE_URI || '',
+      connectionString: dbConfig.connectionString,
       connectionTimeoutMillis: 10000,
-      ssl: isLocalDb ? false : { rejectUnauthorized: false },
+      ssl: dbConfig.ssl,
     },
     push: false,
     prodMigrations: migrations,
@@ -53,9 +56,17 @@ export default buildConfig({
   ]) }],
   cors: [process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'],
   csrf: [process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'],
-  plugins: process.env.S3_BUCKET ? [s3Storage({
-    collections: { media: true }, bucket: process.env.S3_BUCKET,
-    config: { endpoint: process.env.S3_ENDPOINT, region: process.env.S3_REGION || 'auto', forcePathStyle: true,
-      credentials: { accessKeyId: process.env.S3_ACCESS_KEY_ID || '', secretAccessKey: process.env.S3_SECRET_ACCESS_KEY || '' } },
+  plugins: isS3Configured(s3Config) ? [s3Storage({
+    collections: { media: true }, bucket: s3Config.bucket,
+    config: {
+      endpoint: s3Config.endpoint,
+      region: s3Config.region,
+      forcePathStyle: s3Config.forcePathStyle,
+      credentials: {
+        accessKeyId: s3Config.accessKeyId,
+        secretAccessKey: s3Config.secretAccessKey,
+      },
+      logger: createSafeS3Logger(),
+    },
   })] : [],
 });

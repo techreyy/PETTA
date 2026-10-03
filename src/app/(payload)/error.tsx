@@ -121,8 +121,8 @@ export default function AdminError({
           <strong style={{ color: "#E2E8F0" }}>Langkah Pengecekan:</strong>
           <ul style={{ margin: "8px 0 0", paddingLeft: "20px" }}>
             <li>Pastikan database cloud (Supabase / Neon) sedang aktif dan tidak dalam status <em>paused</em>.</li>
-            <li>Pastikan password dan host pada <code style={{ color: "#6A9D94" }}>DATABASE_URI</code> di Vercel Settings sudah benar.</li>
-            <li>Jika menggunakan Neon / Supabase, pastikan mode SSL aktif (<code style={{ color: "#6A9D94" }}>?sslmode=require</code>).</li>
+            <li>Pastikan password dan host pada <code style={{ color: "#6A9D94" }}>DATABASE_URI</code> di pengaturan Environment Variables sudah benar.</li>
+            <li>Jika menggunakan Neon / Supabase, pastikan mode SSL TLS aman aktif (<code style={{ color: "#6A9D94" }}>?sslmode=verify-full</code>).</li>
           </ul>
         </div>
 

@@ -19,7 +19,9 @@ try {
       'tests/inquiry-notification.test.ts',
       'tests/project-import.test.ts',
       'tests/project-status.test.ts',
-      'tests/services-access.test.ts'
+      'tests/services-access.test.ts',
+      'tests/db-config.test.ts',
+      'tests/s3-config.test.ts'
     ], {
       stdio: 'inherit', env: { ...process.env, DATABASE_URI: uri.href, PETTA_TEST_DATABASE: name, PAYLOAD_MIGRATING: 'true' }, windowsHide: true,
     });
