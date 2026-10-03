@@ -454,6 +454,7 @@ Overall: CORE WEBSITE IMPLEMENTED; CMS PARITY AND PRODUCTION PERFORMANCE AUDIT R
 Only change `[ ]` to `[x]` after verification.
 
 Latest update (2026-10-03):
+- Cloudflare R2 Diagnostic Script: Built `scripts/diagnose-r2.mjs` (and registered `"diagnose:r2": "node scripts/diagnose-r2.mjs"` in `package.json`) executing sequential S3 commands: 1) HeadBucket, 2) PutObject (`diagnostics/test.txt`), 3) HeadObject, 4) GetObject, and 5) DeleteObject using identical application normalization (region=auto, forcePathStyle=true). Includes root-cause diagnostic mapping for token permissions, bucket scope, signature mismatch, and invalid endpoints without printing sensitive credentials.
 - PostgreSQL TLS & Neon Audit: Resolved runtime pg warning regarding `sslmode=require` by sanitizing `DATABASE_URI` via `sanitizeDatabaseUri` and `getDatabaseConfig`. Enforced strict `sslmode=verify-full` on remote hosts without downgrading certificate validation (completely eliminated `{ rejectUnauthorized: false }`). Updated inquiry rate limit pool and error boundary guidance.
 - Cloudflare R2 / S3 Storage Audit & Logging: Created `src/lib/s3-config.ts` normalizing `S3_BUCKET`, `S3_ENDPOINT` (enforces https:// protocol, strips trailing slash/bucket suffix), `S3_REGION=auto`, and `forcePathStyle=true`. Added `createSafeS3Logger()` for AWS SDK v3 logging and added `beforeOperation`/`afterError` hooks on Media collection to log comprehensive upload diagnostics (file metadata, command, bucket, key, HTTP status, AWS error name and message) server-side without leaking credentials or secret keys. Updated `.env.example`.
 - Verified: `npm test` passed 28/28 tests across 20 suites, TypeScript (`tsc --noEmit`) 0 errors, ESLint 0 errors, Next.js production build (`next build --webpack`) 100% clean.
@@ -505,6 +506,14 @@ YYYY-MM-DD — Change title
 - Verified:
 - Notes:
 ```
+
+### 2026-10-03 - Cloudflare R2 diagnostic script and S3 operations test suite
+- Changed: Added `scripts/diagnose-r2.mjs` and registered `"diagnose:r2"` in `package.json`. Sequentially exercises HeadBucket, PutObject (`diagnostics/test.txt`), HeadObject, GetObject, and DeleteObject. Displays command, status, error name, message, HTTP status, and requestId, mapping failures to actionable root causes (token permissions, bucket scope, signature mismatch, URL issues) without leaking credentials.
+- Files/areas: `scripts/diagnose-r2.mjs`, `package.json`, `AGENTS.md`.
+- CMS/schema impact: None.
+- Migration/env required: No.
+- Verified: Lint, TypeScript, tests, and build cleanly passed; script tested with missing/mock parameters.
+- Notes: Provides a dedicated diagnostic utility to isolate R2 upload failures on Hostinger and local environments.
 
 ### 2026-10-03 - Neon PostgreSQL TLS verify-full and Cloudflare R2 upload resilience
 - Changed: Normalised DATABASE_URI to use sslmode=verify-full on Neon connections, eliminating driver deprecation warnings while strictly maintaining full TLS CA and hostname verification. Removed rejectUnauthorized: false. Built s3-config utility ensuring Cloudflare R2 requirements (https:// endpoint, region=auto, forcePathStyle=true, trimmed credentials) and implemented safe, non-leaking server-side error logging across S3 client logger, Media beforeOperation/afterError hooks, and Payload API route handler.
