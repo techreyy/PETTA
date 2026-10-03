@@ -6,7 +6,7 @@
     "dev": "node scripts/dev-local.mjs",
     "dev:next": "next dev",
     "dev:local": "node scripts/dev-local.mjs",
-    "build": "next build --webpack",
+    "build": "npm run diagnose:r2 && next build --webpack",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
