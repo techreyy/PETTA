@@ -1,7 +1,7 @@
 import type { CollectionConfig, Field } from 'payload';
 import { APIError } from 'payload';
 import { canPublish, isOwner, isStaff, ownerField, protectPublishing, publishedOrStaff } from './access';
-import { normalizeS3Config, getMissingS3Vars } from '../lib/s3-config';
+import { normalizeS3Config, getMissingS3Vars, isS3Configured } from '../lib/s3-config';
 
 const slug: Field = { name: 'slug', type: 'text', required: true, unique: true, index: true,
   hooks: { beforeValidate: [({ value, originalDoc, siblingData }) => value || originalDoc?.slug || String(siblingData?.title || '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')] },
@@ -57,24 +57,67 @@ export const Users: CollectionConfig = {
 
 export const Media: CollectionConfig = {
   slug: 'media', access: { read: () => true, create: isStaff, update: isStaff, delete: canPublish },
-  upload: { staticDir: 'media', mimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/svg+xml'],
-    imageSizes: [{ name: 'card', width: 800 }, { name: 'large', width: 1800 }], adminThumbnail: 'card' },
-  fields: [{ name: 'alt', type: 'text', required: true }, { name: 'caption', type: 'text' }],
+  upload: {
+    staticDir: 'media',
+    disableLocalStorage: isS3Configured(),
+    mimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/svg+xml'],
+    imageSizes: [
+      { name: 'card', width: 800, withoutEnlargement: true },
+      { name: 'large', width: 1800, withoutEnlargement: true },
+    ],
+    focalPoint: false,
+    crop: false,
+    adminThumbnail: 'card',
+  },
+  fields: [
+    {
+      name: 'alt',
+      type: 'text',
+      required: true,
+      hooks: {
+        beforeValidate: [({ value, req }) => {
+          if (value && typeof value === 'string' && value.trim()) return value.trim();
+          if (req?.file?.name) {
+            return req.file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+          }
+          return 'Media asset';
+        }],
+      },
+    },
+    { name: 'caption', type: 'text' },
+  ],
   hooks: {
     beforeOperation: [({ operation, req }) => {
-      if (['create', 'update'].includes(operation) && req.file) {
+      if (['create', 'update'].includes(operation)) {
+        if (req?.file) {
+          console.log(`[media] file-received: name="${req.file.name}" mimetype="${req.file.mimetype}" size=${req.file.size}b`);
+        } else {
+          console.warn(`[media] file-received: NO file on req for operation=${operation}`);
+        }
         const s3 = normalizeS3Config();
         const missing = getMissingS3Vars(s3);
         if (process.env.NODE_ENV === 'production' && missing.length > 0) {
-          console.error(`[Payload Media Error] Production upload aborted: missing S3/R2 configuration: ${missing.join(', ')}`);
+          console.error(`[media] upload aborted: missing S3/R2 configuration: ${missing.join(', ')}`);
           throw new APIError(`Production media storage is not properly configured. Missing environment variables: ${missing.join(', ')}. Please check your Hostinger configuration.`, 503);
         }
         if (s3.bucket) {
-          console.log(`[Payload Media] Starting upload: file="${req.file.name}" (${req.file.mimetype}, ${req.file.size} bytes), bucket="${s3.bucket}", region="${s3.region}"`);
+          console.log(`[media] S3 target verified: bucket="${s3.bucket}", region="${s3.region}"`);
         }
       }
     }],
-    afterError: [({ error, collection, req }) => {
+    beforeChange: [({ data, operation, req }) => {
+      if (['create', 'update'].includes(operation)) {
+        const filename = (typeof data?.filename === 'string' ? data.filename : '') || (req?.file?.name ?? 'unknown');
+        console.log(`[media] db-create-start: operation=${operation}, filename="${filename}"`);
+      }
+      return data;
+    }],
+    afterChange: [({ doc }) => {
+      console.log(`[media] db-create-success: id="${doc.id}", filename="${doc.filename}"`);
+      console.log(`[media] storage-start: triggering cloud storage sync for "${doc.filename}"`);
+      return doc;
+    }],
+    afterError: [({ error, req }) => {
       const err = (typeof error === 'object' && error !== null ? error : {}) as Record<string, unknown>;
       const metadata = (typeof err.$metadata === 'object' && err.$metadata !== null ? err.$metadata : {}) as Record<string, unknown>;
       const status = metadata.httpStatusCode ?? err.status ?? err.statusCode ?? 500;
@@ -82,17 +125,18 @@ export const Media: CollectionConfig = {
       const errorMessage = typeof err.message === 'string' ? err.message : String(error);
       const code = typeof err.code === 'string' ? err.code : (typeof err.Code === 'string' ? err.Code : 'N/A');
       const requestId = typeof metadata.requestId === 'string' ? metadata.requestId : undefined;
+      const cause = err.cause ? (typeof err.cause === 'object' ? JSON.stringify(err.cause) : String(err.cause)) : undefined;
 
       console.error(
-        `[Payload Media Error] Operation failed on "${collection?.slug || 'media'}": ` +
-        `name=${errorName}, code=${code}, status=${String(status)}, message="${errorMessage}"` +
+        `[media] operation-error: name=${errorName}, code=${code}, status=${String(status)}, message="${errorMessage}"` +
+        (cause ? `, cause=${cause}` : '') +
         (requestId ? `, requestId=${requestId}` : '') +
         (req?.file ? `, file="${req.file.name}" (${req.file.mimetype}, ${req.file.size} bytes)` : '')
       );
 
       if (typeof err.stack === 'string') {
-        const stackSummary = err.stack.split('\n').slice(0, 5).join('\n');
-        console.error(`[Payload Media Error Stack]\n${stackSummary}`);
+        const stackSummary = err.stack.split('\n').slice(0, 8).join('\n');
+        console.error(`[media] operation-error stack:\n${stackSummary}`);
       }
     }],
     beforeDelete: [async ({ id, req }) => {

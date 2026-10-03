@@ -18,7 +18,8 @@
     "format": "prettier --write src scripts next.config.ts",
     "import:legacy": "node --env-file-if-exists=.env.local --import tsx scripts/import-legacy.ts",
     "import:projects": "node --env-file-if-exists=.env.local --import tsx scripts/import-project-folder.ts",
-    "diagnose:r2": "node scripts/diagnose-r2.mjs"
+    "diagnose:r2": "node scripts/diagnose-r2.mjs",
+    "diagnose:sharp": "node scripts/diagnose-sharp.mjs"
   },
   "dependencies": {
     "@payloadcms/db-postgres": "3.90.2",

@@ -1,3 +1,5 @@
+import { NodeHttpHandler } from '@smithy/node-http-handler';
+
 export interface S3NormalizedConfig {
   bucket: string;
   endpoint: string;
@@ -110,5 +112,49 @@ export function createSafeS3Logger(): S3Logger {
         console.error('[S3/R2 Storage Error]', String(data));
       }
     },
+  };
+}
+
+/**
+ * Creates an HTTP request handler for @aws-sdk/client-s3 that emits
+ * clear stage logs ([media] PutObject-start / [media] PutObject-success / [media] PutObject-error)
+ * without leaking sensitive credentials or authorization headers.
+ */
+export function createLoggingS3RequestHandler() {
+  const base = new NodeHttpHandler({
+    httpAgent: { keepAlive: true, maxSockets: 100 },
+    httpsAgent: { keepAlive: true, maxSockets: 100 },
+  });
+
+  return {
+    handle: async (request: Parameters<typeof base.handle>[0], options?: Parameters<typeof base.handle>[1]) => {
+      const reqObj = (typeof request === 'object' && request !== null ? request : {}) as Record<string, unknown>;
+      const method = typeof reqObj.method === 'string' ? reqObj.method : 'GET';
+      const path = typeof reqObj.path === 'string' ? reqObj.path : '';
+      const isPut = method === 'PUT';
+
+      if (isPut) {
+        console.log(`[media] PutObject-start: ${method} ${path}`);
+      }
+
+      try {
+        const result = await base.handle(request, options);
+        if (isPut) {
+          const status = result?.response?.statusCode ?? 200;
+          console.log(`[media] PutObject-success: status ${status} for ${path}`);
+        }
+        return result;
+      } catch (err: unknown) {
+        if (isPut) {
+          const error = (typeof err === 'object' && err !== null ? err : {}) as Record<string, unknown>;
+          const name = typeof error.name === 'string' ? error.name : 'Error';
+          const message = typeof error.message === 'string' ? error.message : String(err);
+          console.error(`[media] PutObject-error: ${name}: ${message} for ${path}`);
+        }
+        throw err;
+      }
+    },
+    updateHttpClientConfig: base.updateHttpClientConfig.bind(base),
+    httpHandlerConfigs: base.httpHandlerConfigs.bind(base),
   };
 }

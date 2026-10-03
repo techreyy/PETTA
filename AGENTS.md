@@ -454,11 +454,19 @@ Overall: CORE WEBSITE IMPLEMENTED; CMS PARITY AND PRODUCTION PERFORMANCE AUDIT R
 Only change `[ ]` to `[x]` after verification.
 
 Latest update (2026-10-03):
-- Restored standard build script in `package.json` to `"next build --webpack"`. The diagnostic script remains available as `"diagnose:r2": "node scripts/diagnose-r2.mjs"` for on-demand execution.
-- Cloudflare R2 Diagnostic Script: Built `scripts/diagnose-r2.mjs` (and registered `"diagnose:r2": "node scripts/diagnose-r2.mjs"` in `package.json`) executing sequential S3 commands: 1) HeadBucket, 2) PutObject (`diagnostics/test.txt`), 3) HeadObject, 4) GetObject, and 5) DeleteObject using identical application normalization (region=auto, forcePathStyle=true). Includes root-cause diagnostic mapping for token permissions, bucket scope, signature mismatch, and invalid endpoints without printing sensitive credentials.
-- PostgreSQL TLS & Neon Audit: Resolved runtime pg warning regarding `sslmode=require` by sanitizing `DATABASE_URI` via `sanitizeDatabaseUri` and `getDatabaseConfig`. Enforced strict `sslmode=verify-full` on remote hosts without downgrading certificate validation (completely eliminated `{ rejectUnauthorized: false }`). Updated inquiry rate limit pool and error boundary guidance.
-- Cloudflare R2 / S3 Storage Audit & Logging: Created `src/lib/s3-config.ts` normalizing `S3_BUCKET`, `S3_ENDPOINT` (enforces https:// protocol, strips trailing slash/bucket suffix), `S3_REGION=auto`, and `forcePathStyle=true`. Added `createSafeS3Logger()` for AWS SDK v3 logging and added `beforeOperation`/`afterError` hooks on Media collection to log comprehensive upload diagnostics (file metadata, command, bucket, key, HTTP status, AWS error name and message) server-side without leaking credentials or secret keys. Updated `.env.example`.
-- Verified: `npm test` passed 28/28 tests across 20 suites, TypeScript (`tsc --noEmit`) 0 errors, ESLint 0 errors, Next.js production build (`next build --webpack`) 100% clean.
+- Payload Media Upload Pipeline Audit & Comprehensive Stage Logging: Implemented full stage logging pipeline across media upload lifecycle without credential leakage:
+  1. `[media] request-received` with method, url, contentType and contentLength in `src/app/(payload)/api/[...slug]/route.ts`;
+  2. `[media] file-received` in `Media.hooks.beforeOperation` logging filename, mimetype, size;
+  3. `[media] sharp-start` and `[media] sharp-success` / `[media] sharp-error` with error name, message, and stack trace via `getInstrumentedSharp()` in `src/payload.config.ts`;
+  4. `[media] db-create-start` in `Media.hooks.beforeChange`;
+  5. `[media] db-create-success` in `Media.hooks.afterChange`;
+  6. `[media] storage-start` in `Media.hooks.afterChange`;
+  7. `[media] PutObject-start` and `[media] PutObject-success` / `[media] PutObject-error` via `createLoggingS3RequestHandler()` in `src/lib/s3-config.ts`;
+  8. `[media] operation-error` logging error name, message, cause, status, requestId and server-side stack in `Media.hooks.afterError`;
+  9. `[media] request-failed` / `[media] request-success` response logging in `src/app/(payload)/api/[...slug]/route.ts`.
+- Media Collection Hardening & Local Storage Protection: Added explicit `disableLocalStorage: isS3Configured()` on `Media.upload` preventing unhandled local disk writes when S3 is active; set `focalPoint: false` and `crop: false` to eliminate Sharp extract bounds calculation errors; set `withoutEnlargement: true` on `imageSizes` ('card' 800w, 'large' 1800w); added automatic filename fallback on `alt` in `beforeValidate` to prevent validation rejections; ensured local `media/` directory is created on startup via `fs.mkdirSync`.
+- Sharp Diagnostic Script: Built `scripts/diagnose-sharp.mjs` (registered `"diagnose:sharp"` in `package.json`) testing Sharp module loading, metadata extraction, auto-rotation, card/large resizing, and WebP format conversion.
+- Verified: `npm run diagnose:sharp` 100% SUCCESS, `npm test` passed 28/28 tests across 20 suites, TypeScript (`tsc --noEmit`) 0 errors, ESLint 0 errors, Next.js Webpack production build (`next build --webpack`) 100% clean. Build script retained in normal production mode (`next build --webpack`).
 
 Previous update (2026-10-03):
 - Dependency audit: undici patched to 7.29.1, dompurify to 3.4.16; incompatible legacy esbuild override removed without changing resolved esbuild versions. Audits: 25 to 18 total, 22 to 15 production, 3 exclusively devDependency findings. Two active advisory families remain; no upstream braces patch exists. Audit exit codes remain 1.
@@ -507,6 +515,14 @@ YYYY-MM-DD — Change title
 - Verified:
 - Notes:
 ```
+
+### 2026-10-03 - Payload media upload pipeline audit, stage logging and Sharp diagnostic
+- Changed: Added full-lifecycle media upload stage logging ([media] request-received, file-received, sharp-start, sharp-success/error, db-create-start, db-create-success, storage-start, PutObject-start, PutObject-success/error, request-failed/success); hardened Media collection with `disableLocalStorage: isS3Configured()`, `focalPoint: false`, `crop: false`, `withoutEnlargement: true` on imageSizes, and automatic filename fallback for `alt`; created `scripts/diagnose-sharp.mjs` and registered `"diagnose:sharp"` in `package.json`; preserved standard build script `"next build --webpack"`.
+- Files/areas: `src/cms/collections.ts`, `src/payload.config.ts`, `src/lib/s3-config.ts`, `src/app/(payload)/api/[...slug]/route.ts`, `scripts/diagnose-sharp.mjs`, `package.json`, `AGENTS.md`.
+- CMS/schema impact: None (presentation, hooks, and runtime hardening only; no schema or database migrations).
+- Migration/env required: No.
+- Verified: `npm run diagnose:sharp` 100% SUCCESS, `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm test` (28/28 tests passed), `npm run build` (100% clean production build).
+- Notes: Safely isolates and pinpoints any failure inside the Payload upload pipeline prior to or during storage adapter PutObject.
 
 ### 2026-10-03 - Restored build script to standard Next.js Webpack command
 - Changed: Reverted `build` script in `package.json` to `"next build --webpack"`. The standalone diagnostic script remains available as `"diagnose:r2": "node scripts/diagnose-r2.mjs"`.

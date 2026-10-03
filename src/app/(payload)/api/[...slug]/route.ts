@@ -59,18 +59,38 @@ function guarded(handler: (request: Request, context: Context) => Promise<Respon
         if (!isAllowed) return Response.json({ message: 'Invalid origin.' }, { status: 403 });
       }
     }
+    const isMediaUpload = slug[0] === 'media' && ['POST', 'PATCH', 'PUT'].includes(request.method);
+    if (isMediaUpload) {
+      const contentType = request.headers.get('content-type') || 'none';
+      const contentLength = request.headers.get('content-length') || 'unknown';
+      console.log(`[media] request-received: method=${request.method} url=${request.url} contentType=${contentType} length=${contentLength}`);
+    }
+
     try {
       const response = await handler(request, context);
-      if (response.status >= 400 && slug[0] === 'media') {
-        console.error(`[API /api/${slug.join('/')}] Returned status ${response.status} for ${request.method}`);
+      if (isMediaUpload) {
+        if (response.status >= 400) {
+          try {
+            const clone = response.clone();
+            const text = await clone.text();
+            console.error(`[media] request-failed HTTP ${response.status}: ${text}`);
+          } catch {
+            console.error(`[media] request-failed HTTP ${response.status}`);
+          }
+        } else {
+          console.log(`[media] request-success HTTP ${response.status}`);
+        }
       }
       return response;
     } catch (err: unknown) {
-      if (slug[0] === 'media') {
+      if (isMediaUpload) {
         const error = (typeof err === 'object' && err !== null ? err : {}) as Record<string, unknown>;
         const name = typeof error.name === 'string' ? error.name : 'Error';
         const message = typeof error.message === 'string' ? error.message : String(err);
-        console.error(`[API /api/${slug.join('/')}] Upload exception: ${name}: ${message}`);
+        console.error(`[media] request-exception: ${name}: ${message}`);
+        if (typeof error.stack === 'string') {
+          console.error(`[media] request-exception stack:\n${error.stack.split('\n').slice(0, 8).join('\n')}`);
+        }
       }
       throw err;
     }
