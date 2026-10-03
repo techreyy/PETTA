@@ -67,3 +67,15 @@ test('getDatabaseConfig returns correct pool options for local vs remote', () =>
   assert.equal(remote.ssl, undefined);
   assert.ok(remote.connectionString.includes('sslmode=verify-full'));
 });
+
+test('Neon runtime uses the same endpoint through its pooler and preserves credentials and options', () => {
+  const raw = 'postgresql://user:p%40ss@ep-cool-fog-123.us-east-2.aws.neon.tech/neondb?sslmode=verify-full&connect_timeout=10';
+  const pooled = new URL(getDatabaseConfig(raw).connectionString);
+  const original = new URL(raw);
+  assert.equal(pooled.hostname, 'ep-cool-fog-123-pooler.us-east-2.aws.neon.tech');
+  for (const key of ['username', 'password', 'pathname', 'search', 'port'] as const) assert.equal(pooled[key], original[key]);
+  assert.equal(getDatabaseConfig(pooled.href).connectionString, pooled.href);
+  for (const host of ['localhost', '127.0.0.1', 'db.example.com', 'ep-test.neon.tech.example.com']) {
+    assert.equal(new URL(getDatabaseConfig(`postgresql://u:p@${host}/petta`).connectionString).hostname, host);
+  }
+});

@@ -21,6 +21,7 @@ try {
       'tests/project-status.test.ts',
       'tests/services-access.test.ts',
       'tests/db-config.test.ts',
+      'tests/cms-timing.test.ts',
       'tests/s3-config.test.ts'
     ], {
       stdio: 'inherit', env: { ...process.env, DATABASE_URI: uri.href, PETTA_TEST_DATABASE: name, PAYLOAD_MIGRATING: 'true' }, windowsHide: true,

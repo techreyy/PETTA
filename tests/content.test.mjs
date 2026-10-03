@@ -121,4 +121,18 @@ test("shared lists omit heavy fields while project detail keeps its gallery", as
   const detail = await getProject('gallery');
   assert.deepEqual(detail.project.gallery, ['/one.webp']);
   assert.equal(calls.at(-1).select, undefined);
+  assert.equal(calls.at(-1).depth, 1);
+  assert.equal(calls.at(-1).pagination, false);
+});
+
+test('news detail skips unused totals and preserves the published-only read', async () => {
+  let options;
+  globalThis.__contentPayload = async () => ({
+    find: async query => { options = query; return { docs: [] }; },
+  });
+  await getNews('missing');
+  assert.equal(options.pagination, false);
+  assert.equal(options.limit, 1);
+  assert.equal(options.overrideAccess, false);
+  assert.deepEqual(options.where.and[1], { _status: { equals: 'published' } });
 });

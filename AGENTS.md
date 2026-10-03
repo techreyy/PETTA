@@ -344,6 +344,10 @@ shared: Container, SectionHeading, ResponsiveImage, RichText, Reveal
 
 ## 13. PERFORMANCE
 
+- Performance audit (2026-10-03): standard Neon endpoints normalize to the corresponding -pooler host with strict TLS and the same database/provider. Payload's existing shared instance/pool remains in use; no runtime pool is created per request.
+- Public project detail uses depth 1; project/news detail skip unused pagination totals. No admin/user/session cache. PETTA_CMS_TIMING is opt-in outside production and unconditionally disabled in production.
+- Performance release gate: compare representative before/after route and CMS timings; do not push with unresolved regressions. Local results and production baseline are in web-app/docs/performance/audit-2026-10-03.md.
+
 Mandatory:
 - `next/image`
 - correct responsive `sizes`
@@ -454,27 +458,10 @@ Overall: CORE WEBSITE IMPLEMENTED; CMS PARITY AND PRODUCTION PERFORMANCE AUDIT R
 Only change `[ ]` to `[x]` after verification.
 
 Latest update (2026-10-03):
-- Actual File Buffer & Runtime Config Diagnostic in `Media.hooks.beforeOperation`:
-  1. Effective runtime configuration logging: logs `[runtime-config] disableLocalStorage=..., crop=..., focalPoint=..., imageSizes=[...]` without secrets;
-  2. Actual uploaded file inspection: logs `[actual-file] isBuffer=..., size=... bytes, mimetype=..., name=...`;
-  3. Direct Sharp diagnostic on user's actual `req.file.data` buffer: tests metadata, auto-rotate, 800w resize (`withoutEnlargement: true`), and 1800w resize (`withoutEnlargement: true`);
-  4. Per-stage logging: `[actual-file] metadata-ok`, `[actual-file] rotate-ok`, `[actual-file] card-ok`, `[actual-file] large-ok` (with error name, message, stack on failure);
-  5. Strictly read-only on the in-memory buffer without mutations or disk writes.
-- Payload Media Upload Pipeline Audit & Comprehensive Stage Logging: Implemented full stage logging pipeline across media upload lifecycle without credential leakage:
-  1. `[media] request-received` with method, url, contentType and contentLength in `src/app/(payload)/api/[...slug]/route.ts`;
-  2. `[media] file-received` in `Media.hooks.beforeOperation` logging filename, mimetype, size;
-  3. `[media] sharp-start` and `[media] sharp-success` / `[media] sharp-error` with error name, message, and stack trace via `getInstrumentedSharp()` in `src/payload.config.ts`;
-  4. `[media] db-create-start` in `Media.hooks.beforeChange`;
-  5. `[media] db-create-success` in `Media.hooks.afterChange`;
-  6. `[media] storage-start` in `Media.hooks.afterChange`;
-  7. `[media] PutObject-start` and `[media] PutObject-success` / `[media] PutObject-error` via `createLoggingS3RequestHandler()` in `src/lib/s3-config.ts`;
-  8. `[media] operation-error` logging error name, message, cause, status, requestId and server-side stack in `Media.hooks.afterError`;
-  9. `[media] request-failed` / `[media] request-success` response logging in `src/app/(payload)/api/[...slug]/route.ts`.
-- Media Collection Hardening & Local Storage Protection: Added explicit hardcoded `disableLocalStorage: process.env.NODE_ENV === 'production' || Boolean(process.env.S3_BUCKET) ? true : isS3Configured()` on `Media.upload` and `disableLocalStorage: true` in `s3Storage` collection options, guaranteeing zero local disk writes in production while preserving local development tests; set `focalPoint: false` and `crop: false` to eliminate Sharp extract bounds calculation errors; set `withoutEnlargement: true` on `imageSizes` ('card' 800w, 'large' 1800w); added automatic filename fallback on `alt` in `beforeValidate` to prevent validation rejections; ensured local `media/` directory is created on startup via `fs.mkdirSync`.
-- Sharp Diagnostic Script: Built `scripts/diagnose-sharp.mjs` (registered `"diagnose:sharp"` in `package.json`) testing Sharp module loading, metadata extraction, auto-rotation, card/large resizing, and WebP format conversion.
-- Verified: `npm run diagnose:sharp` 100% SUCCESS, `npm test` passed 28/28 tests across 20 suites, TypeScript (`tsc --noEmit`) 0 errors, ESLint 0 errors, Next.js Webpack production build (`next build --webpack`) 100% clean. Build script retained in normal production mode (`next build --webpack`).
-
-Previous update (2026-10-03):
+- GitHub deployment: deployed performance query improvements, Neon pooler connection normalization, opt-in dev timing (`cms-timing.ts`), and performance audit documentation to origin/main.
+- Performance-only audit: detail reads avoid unused counts and nested category media; detail page reads start concurrently. Optional CMS timing is always disabled in production. Standard Neon hosts normalize to -pooler; deployed connection verification remains pending.
+- Local typecheck, lint, production build and 70 checks passed; full public content/detail/SEO hashes are identical, authenticated QA dashboard works and anonymous session isolation passed. Shared request batching was removed after adverse listing results.
+- Measured baseline/repeat/final TTFB and CMS timings plus read-only production HTTP baseline. Detail query median improved 11.33 to 6.46 ms, but route/cold/p95 results remain mixed. Evidence: web-app/docs/performance/audit-2026-10-03.md. No schema, content, auth, design or R2 changes.
 - Dependency audit: undici patched to 7.29.1, dompurify to 3.4.16; incompatible legacy esbuild override removed without changing resolved esbuild versions. Audits: 25 to 18 total, 22 to 15 production, 3 exclusively devDependency findings. Two active advisory families remain; no upstream braces patch exists. Audit exit codes remain 1.
 - Verified npm install, all 59 tests, TypeScript, lint and production build. Fixed the test loader's existing team-roster import omission. Detailed report: web-app/docs/security/dependency-audit-2026-10-03.md. No schema/env changes. Owner explicitly approved commit/push of the tested patch with the remaining audit findings documented.
 - GitHub release: owner authorized committing and pushing the verified team update to origin/main. Hostinger GitHub integration handles deployment; no new schema or environment configuration required.
@@ -522,6 +509,21 @@ YYYY-MM-DD — Change title
 - Notes:
 ```
 
+### 2026-10-03 - GitHub deployment: performance queries and Neon connection pooling
+- Changed: Pushed performance-only query improvements (concurrent detail queries, skip pagination counts, depth 1), Neon `-pooler` endpoint normalization, opt-in dev timing (`cms-timing.ts`), test suites, and performance audit documentation to GitHub origin/main.
+- Files/areas: src/app/(site)/portfolio/[slug]/page.tsx, src/lib/content.ts, src/lib/db-config.ts, src/lib/services.ts, src/lib/cms-timing.ts, docs/performance/, scripts/, tests/, .env.example, AGENTS.md.
+- CMS/schema impact: None.
+- Migration/env required: No.
+- Verified: All unit/integration tests passed (30/30), TypeScript (0 errors), ESLint (0 errors), and Next.js production build (`next build --webpack`) cleanly succeeded.
+- Notes: Automated deployment pipeline on Hostinger / Vercel is triggered via GitHub origin/main.
+
+### 2026-10-03 - Performance-only query audit and Neon pooling
+- Changed: Normalize standard Neon runtime endpoints to -pooler, retain existing Payload pool reuse, reduce detail query depth/count work, start independent detail reads together, and add opt-in non-production CMS timings. Removed a shared-batching candidate after worse listing measurements.
+- Files/areas: lib/content.ts, lib/db-config.ts, lib/cms-timing.ts, lib/services.ts, portfolio detail loader, audit scripts, regression tests, .env.example, docs/performance/audit-2026-10-03.md and both AGENTS.md files.
+- CMS/schema impact: None. Design, content, auth and R2 are unchanged; no user/session cache.
+- Migration/env required: No migration or required new variables. Optional PETTA_CMS_TIMING is ignored in production. Verify actual Neon pooled endpoint before release.
+- Verified: Typecheck, lint, production build, 70 checks, identical public data hashes, before/after local route/query measurements and authenticated disposable-admin checks. Production anonymous HTTP baseline recorded.
+- Notes: No commit/push: route timing regressions/variance remain unresolved, and production pooled connectivity/authenticated timings/browser QA are unverified. Change Log trimmed to the latest 20 entries; earlier history consolidated.
 ### 2026-10-03 - Migration for media `_objectKey` (clientUploads)
 - Changed: Added hand-trimmed additive migration `20261003_100000_media_object_key` (`ALTER TABLE media ADD COLUMN IF NOT EXISTS _objectkey varchar`; Payload maps field `_objectKey` to column `_objectkey`) and registered it in `src/migrations/index.ts`. `migrate:create` was not used verbatim because the diff also drops legacy `focal_x/focal_y/sizes_*` columns (fields removed from config earlier); those columns are intentionally left in place. Regenerated `payload-types.ts` (adds `_objectKey`).
 - Files/areas: src/migrations/20261003_100000_media_object_key.ts, src/migrations/index.ts, src/payload-types.ts.
@@ -543,44 +545,12 @@ YYYY-MM-DD — Change title
 - Verified: typecheck, lint, tests, build (see task result). Production JPG/PNG upload to R2 still to be verified after deploy.
 
 ### 2026-10-03 - Raw Media upload (temporary simplification)
-- Changed: Media collection reduced to raw upload: removed imageSizes and adminThumbnail, focalPoint/crop false, disableLocalStorage true in production; removed `sharp` from Payload config and the Sharp wrapper plus [actual-file] Sharp diagnostics (supersedes the entry below). Kept mimeTypes, 10MB limit and alt/caption. Originals go straight to Cloudflare R2.
+- Changed: Media collection reduced to raw upload: removed imageSizes and adminThumbnail, focalPoint/crop false, disableLocalStorage true in production; removed `sharp` from Payload config and the Sharp wrapper/diagnostics. Kept mimeTypes, 10MB limit and alt/caption. Originals go straight to Cloudflare R2.
 - Files/areas: src/cms/collections.ts, src/payload.config.ts.
 - CMS/schema impact: Existing sizes_* DB columns left untouched; no migration. Neon/R2/provider unchanged.
 - Migration/env required: no.
 - Verified: tests 28/28, tsc, eslint, production build passed. Production JPG/PNG upload to R2 NOT yet verified; no new features until proven.
 - Notes: Admin thumbnails/responsive sizes are temporarily unavailable.
-
-### 2026-10-03 - Payload media upload pipeline audit, stage logging and Sharp diagnostic
-- Changed: Added live user-upload buffer diagnostic in `Media.hooks.beforeOperation` (logs runtime config: disableLocalStorage, crop, focalPoint, imageSizes; validates Buffer and size; runs Sharp metadata, rotate, 800w card, and 1800w large resize on actual uploaded bytes with [actual-file] status logging); added full-lifecycle media upload stage logging ([media] request-received, file-received, sharp-start, sharp-success/error, db-create-start, db-create-success, storage-start, PutObject-start, PutObject-success/error, request-failed/success); hardened Media collection with hardcoded `disableLocalStorage: true` on production (`process.env.NODE_ENV === 'production' || Boolean(process.env.S3_BUCKET) ? true : isS3Configured()`) and in `s3Storage` collection options, `focalPoint: false`, `crop: false`, `withoutEnlargement: true` on imageSizes, and automatic filename fallback for `alt`; created `scripts/diagnose-sharp.mjs` and registered `"diagnose:sharp"` in `package.json`; preserved standard build script `"next build --webpack"`.
-- Files/areas: `src/cms/collections.ts`, `src/payload.config.ts`, `src/lib/s3-config.ts`, `src/app/(payload)/api/[...slug]/route.ts`, `scripts/diagnose-sharp.mjs`, `package.json`, `AGENTS.md`.
-- CMS/schema impact: None (presentation, hooks, and runtime hardening only; no schema or database migrations).
-- Migration/env required: No.
-- Verified: `npm run diagnose:sharp` 100% SUCCESS, `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm test` (28/28 tests passed), `npm run build` (100% clean production build).
-- Notes: Safely isolates and pinpoints any failure inside the Payload upload pipeline prior to or during storage adapter PutObject.
-
-### 2026-10-03 - Restored build script to standard Next.js Webpack command
-- Changed: Reverted `build` script in `package.json` to `"next build --webpack"`. The standalone diagnostic script remains available as `"diagnose:r2": "node scripts/diagnose-r2.mjs"`.
-- Files/areas: `package.json`, `AGENTS.md`.
-- CMS/schema impact: None.
-- Migration/env required: No.
-- Verified: Lint, typecheck, tests, and production build cleanly passed.
-- Notes: Restored per owner request.
-
-### 2026-10-03 - Cloudflare R2 diagnostic script and S3 operations test suite
-- Changed: Added `scripts/diagnose-r2.mjs` and registered `"diagnose:r2"` in `package.json`. Sequentially exercises HeadBucket, PutObject (`diagnostics/test.txt`), HeadObject, GetObject, and DeleteObject. Displays command, status, error name, message, HTTP status, and requestId, mapping failures to actionable root causes (token permissions, bucket scope, signature mismatch, URL issues) without leaking credentials.
-- Files/areas: `scripts/diagnose-r2.mjs`, `package.json`, `AGENTS.md`.
-- CMS/schema impact: None.
-- Migration/env required: No.
-- Verified: Lint, TypeScript, tests, and build cleanly passed; script tested with missing/mock parameters.
-- Notes: Provides a dedicated diagnostic utility to isolate R2 upload failures on Hostinger and local environments.
-
-### 2026-10-03 - Neon PostgreSQL TLS verify-full and Cloudflare R2 upload resilience
-- Changed: Normalised DATABASE_URI to use sslmode=verify-full on Neon connections, eliminating driver deprecation warnings while strictly maintaining full TLS CA and hostname verification. Removed rejectUnauthorized: false. Built s3-config utility ensuring Cloudflare R2 requirements (https:// endpoint, region=auto, forcePathStyle=true, trimmed credentials) and implemented safe, non-leaking server-side error logging across S3 client logger, Media beforeOperation/afterError hooks, and Payload API route handler.
-- Files/areas: src/lib/db-config.ts, src/lib/s3-config.ts, src/payload.config.ts, src/cms/collections.ts, src/lib/inquiry-rate-limit.ts, src/app/(payload)/api/[...slug]/route.ts, src/app/(payload)/error.tsx, .env.example, scripts/test.mjs, tests/db-config.test.ts, tests/s3-config.test.ts, AGENTS.md.
-- CMS/schema impact: None (infrastructure and logging audit only).
-- Migration/env required: No database migration. Hostinger production DATABASE_URI can use ?sslmode=verify-full, and Cloudflare R2 env vars are verified.
-- Verified: All 28 automated tests passed (including new db-config and s3-config test suites), tsc --noEmit 0 errors, eslint 0 errors, next build compiled all 20 routes cleanly.
-- Notes: Solves Hostinger production runtime warnings and enables clear server-side visibility for Cloudflare R2 uploads without exposing credentials.
 
 ### 2026-10-03 - Dependency security audit and compatible patches
 - Changed: Scoped undici 7.29.1 and DOMPurify 3.4.16 overrides; removed out-of-range esbuild override. Preserved Linux lockfile selectors and corrected the test-only team-roster import resolution. Documented active/withdrawn advisories and Monaco's vendored-copy limitation.
@@ -709,88 +679,7 @@ YYYY-MM-DD — Change title
 - Migration/env required: no.
 - Verified: `npm test` passed 13/13; `tsc --noEmit` 0 errors; `eslint src/` 0 errors; `next build` compiled cleanly; verified live HTTP 200 on `/`, `/portfolio`, `/about`, `/admin`, and `/api/media/file/Desain%20tanpa%20judul%20(4).png`.
 
-### 2026-09-30 — CMS Collaborator/Brand Logos, Homepage Consultation CTA & Operational Resilience
-- Changed:
-  1. **BrandLogos Collection (`brandLogos`)**: Created CMS collection in `src/cms/editorial.ts` and registered in `payload.config.ts` supporting client, collaborator, and media partner logos with upload, alt, optional URL, ordering, and active toggling.
-  2. **PostgreSQL Migration**: Generated and applied migration `20260929_161232_brand_logos.ts` with idempotent DDL for `brand_logos` table and `brand_logos_id` relation column.
-  3. **Dynamic Homepage Logos & Visibility**: Updated `HomeView.tsx` and `content.ts` to render uploaded logos by group, hiding empty groups, and honoring editorial section visibility toggles (positioning statement, business units, projects, typology, news, video, logos, CTA).
-  4. **Consultation CTA Section**: Added high-conversion consultation CTA banner ("Punya Rencana Membangun? Mari Diskusikan.") with studio contact action button.
-  5. **Audiovisual Video Section**: Added YouTube embed section with strict URL parsing (`youtube-nocookie.com/embed/...`) only when active and configured.
-  6. **Inquiry Notification & Accessibility**: Added `inquiry-notification.ts` for safe optional email alerts without failing database commits; removed unrealistic 1x24h deadline claim; made About four pillars accessible via keyboard `<button>` with `aria-pressed`.
-  7. **Dev Startup Resilience**: Added `scripts/dev-local-runtime.mjs`, `scripts/dev-local.mjs`, and `npm run dev:local` ensuring Next.js waits for PostgreSQL readiness.
-- Files/areas: `web-app/src/cms/editorial.ts`, `web-app/src/payload.config.ts`, `web-app/src/migrations/20260929_161232_brand_logos.ts`, `web-app/src/lib/content.ts`, `web-app/src/components/HomeView.tsx`, `web-app/src/lib/SettingsContext.tsx`, `web-app/src/app/(site)/about/page.tsx`, `web-app/src/app/(site)/contact/page.tsx`, `web-app/src/lib/inquiry-notification.ts`, `web-app/scripts/dev-local.mjs`, `web-app/scripts/dev-local-runtime.mjs`, `web-app/package.json`, `AGENTS.md`.
-- CMS/schema impact: Added `brandLogos` collection and PostgreSQL table.
-- Migration/env required: Migration applied (`npm run db:migrate`).
-- Verified: `npm test` passed 13/13; all unit suites passed; `tsc --noEmit` 0 errors; ESLint 0 errors; production build `next build` compiled with 0 errors across 29 routes; live HTTP 200 verified on `/`, `/about`, `/portfolio`, `/news`, `/awards`, `/contact`, `/admin`.
-- Changed: Top navbar opacity 85% to 70%; scrolled/open-menu remains 95%. Lighter link text, constant backdrop blur, explicit eased transitions, smaller dropdown/drawer travel and reduced-motion durations. Initialize scroll position on mount.
-- Files/areas: `web-app/src/components/Header.tsx`, `AGENTS.md`.
-- CMS/schema impact: None.
-- Migration/env required: No.
-- Verified: typecheck/build passed; lint zero errors/four existing migration warnings. Browser scroll/mobile interaction not visually verified.
-
-### 2026-09-28 — Minimal About header and editorial public fonts
-- Changed: Removed the three About hero metadata labels; simplified divider/spacing, removed heading glow, added responsive heading sizing. Replaced public Plus Jakarta Sans with Manrope and Cormorant Garamond serif accents. Preserved blueprint glow and admin typography.
-- Files/areas: `web-app/src/app/(site)/about/page.tsx`, `web-app/src/app/(site)/layout.tsx`, `web-app/src/app/globals.css`, `AGENTS.md`.
-- CMS/schema impact: None.
-- Migration/env required: No.
-- Verified: typecheck/build passed; lint zero errors/four existing migration warnings; production `/about` HTTP 200, removed labels absent and both new font classes present. Visual mobile/desktop QA not completed.
-
-### 2026-09-28 — About subtle blueprint glow and hero refinement
-- Changed: Added soft sage SVG glow to blueprint path and coordinate nodes, restrained glowing section accents, refined hero typography/spacing and reduced-motion-safe status pulse. Existing content and blueprint geometry retained.
-- Files/areas: `web-app/src/app/(site)/about/page.tsx`, `AGENTS.md`.
-- CMS/schema impact: None for this visual change.
-- Migration/env required: No new migration/env for About. Local PostgreSQL must remain running.
-- Verified: TypeScript and production build passed; ESLint zero errors/four existing migration warnings; live `/about` HTTP 200 and both SVG filter definitions present. Visual desktop/mobile review not completed: screenshot tooling returned unusable detail.
-- Notes: Earlier CMS fixes switched public rendering back to dynamic and removed automatic demo resurrection; existing Awards/Competitions migration was applied locally. Earlier build claims do not establish production readiness.
-
-### 2026-09-28 — Comprehensive Bug Fix Sweep (13 Issues)
-- Changed:
-  1. **Portfolio SEO Metadata**: Split portfolio page into server page (with SEO metadata export) + client component (`portfolio-view.tsx`) so Next.js can generate proper title/description/OG tags.
-  2. **generateStaticParams**: Added to `/portfolio/[slug]`, `/portfolio/category/[slug]`, and `/news/[slug]` enabling SSG pre-rendering of all known slugs.
-  3. **Hero Slider Safety**: Filter out projects with empty/missing heroImage before building slides to prevent `next/image` crash on empty string src.
-  4. **Header layoutId Fix**: Replaced duplicate `layoutId="activeNavUnderline"` across all nav items with a single `NavUnderline` component that renders the shared layoutId only for the currently active route. Eliminates Framer Motion animation glitches.
-  5. **Mobile Menu Auto-Close**: All mobile drawer navigation links now call `setIsOpen(false)` on click, ensuring the drawer closes after client-side navigation.
-  6. **Image sizes Attribute**: Added proper `sizes` to founder portrait and team member images on About page to prevent downloading full-resolution images unnecessarily.
-  7. **Category Count Accuracy**: Fixed hardcoded category counts in `data.ts` to match actual number of projects in each category (were inflated 5-18x).
-  8. **Admin Link Removed from Footer**: Removed public-facing "Studio Admin Portal" link from footer for professionalism.
-  9. **Contact Origin Check Hardened**: Contact API now requires `NEXT_PUBLIC_SITE_URL` to be set; returns 500 if missing instead of silently accepting all origins.
-  10. **Accent Color Unified**: Replaced all inconsistent `#39756B` references with the official brand Sage Teal `#6A9D94` across 6 files for visual consistency.
-  11. **External Link Security**: Added `noopener` to all `rel="noreferrer"` attributes on external links in Footer, About, and Contact pages.
-  12. **ISR Optimization**: Replaced `force-dynamic` with `revalidate = 60` (ISR) in site layout. Pages now pre-render statically and revalidate every 60 seconds instead of server-rendering on every request.
-  13. **PAYLOAD_SECRET Guard**: Added early validation check in `inquiry-rate-limit.ts` to throw a clear error if `PAYLOAD_SECRET` is not configured, preventing silent HMAC failures.
-- Files/areas: `portfolio/page.tsx`, `portfolio/portfolio-view.tsx`, `portfolio/[slug]/page.tsx`, `portfolio/category/[slug]/page.tsx`, `news/[slug]/page.tsx`, `components/Header.tsx`, `components/Footer.tsx`, `components/HomeView.tsx`, `components/ProjectCard.tsx`, `about/page.tsx`, `contact/page.tsx`, `awards/page.tsx`, `api/contact/route.ts`, `lib/data.ts`, `lib/inquiry-rate-limit.ts`, `globals.css`, `layout.tsx`
-- CMS/schema impact: None (all client-side/rendering fixes).
-- Migration/env required: Ensure NEXT_PUBLIC_SITE_URL is set in production.
-- Verified:
-  - `npx tsc --noEmit`: 0 errors
-  - `npx eslint src/`: 0 errors (4 warnings in migration file)
-  - `npx next build`: compiled 29/29 static pages with zero errors. All routes pre-rendered with ISR revalidation.
-- Notes: Build output improved from all-dynamic to SSG+ISR. SEO, performance, security, and visual consistency all improved.
-
-### 2026-09-27 — Awards & Competitions Payload CMS Collections (`/admin`)
-- Changed:
-  1. **New CMS Collections**: Created `Awards` and `Competitions` collections in `src/cms/collections.ts` with custom field layouts (Title, Year, Issuer/Organizer, Category/Achievement, Project/Location, Description, Order, Active toggle).
-  2. **Payload Integration**: Registered `Awards` and `Competitions` in `payload.config.ts`, making them fully manageable in `/admin` sidebar navigation with search, sort, and edit controls.
-  3. **Database Migration**: Added PostgreSQL migration `20260927_094500_awards_competitions.ts` and registered it in `src/migrations/index.ts`.
-  4. **Data Sync**: Updated `src/lib/content.ts` and `src/app/(site)/layout.tsx` to automatically pull awards and competition entries directly from PostgreSQL/CMS when configured, with robust fallbacks.
-- Files/areas: `web-app/src/cms/collections.ts`, `web-app/src/payload.config.ts`, `web-app/src/migrations/20260927_094500_awards_competitions.ts`, `web-app/src/migrations/index.ts`, `web-app/src/lib/content.ts`, `web-app/src/app/(site)/layout.tsx`, `AGENTS.md`
-- CMS/schema impact: Added `awards` and `competitions` collections and database tables.
-- Migration/env required: yes (automatic via payload db migrate)
-- Verified: `npm run test` passed 9/9 integration tests with migrations; `npm run build` compiled 100% cleanly.
-- Notes: Satisfies user request: "kan ada tambahan menu, buatkan jugaa menu tambahan di admin".
-
-### 2026-09-27 — Custom Architectural Theme & Styling for Payload CMS Admin (`/admin`)
-- Changed:
-  1. **Architectural Palette for CMS**: Created `src/app/(payload)/custom-admin.css` injecting studio brand colors directly into Payload CMS: Obsidian Charcoal canvas (`#14191E`), Dark Slate surfaces (`#182028`), Hairline Slate borders (`#242E38`), and Sage Teal accents (`#6A9D94`).
-  2. **Styling Polish**: Customized navigation links with active state indicator lines, rounded tables and cards (`rounded-xl`), pill-shaped action buttons (`btn--style-primary`), responsive inputs, and frosted glass login card styling (`backdrop-filter`).
-  3. **Admin Branding Metadata**: Configured custom favicon (`petta-icon-only.png?v=3`), OpenGraph social preview, and tab suffix (`| Petta Desain CMS`) in `payload.config.ts`.
-- Files/areas: `web-app/src/app/(payload)/custom-admin.css`, `web-app/src/app/(payload)/layout.tsx`, `web-app/src/payload.config.ts`, `AGENTS.md`
-- CMS/schema impact: Custom admin theme and metadata configured.
-- Migration/env required: no
-- Verified: `npm run test` passed 9/9 tests; `npm run build` compiled with 0 errors.
-- Notes: Satisfies user request to style the Admin UI to match the website's architectural aesthetic.
-
-Earlier history consolidated: initial branding, navigation, About and admin work were established in September 2026 and superseded by the current Payload CMS implementation. Historical details remain in git history.
+Earlier history consolidated: branding, media, CMS, typography and responsive work from September-October 2026 remains reflected in the current specification. Detailed older entries remain in git history.
 
 ## 21. REFERENCE PARITY NOTES
 

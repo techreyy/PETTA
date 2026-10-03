@@ -18,7 +18,7 @@ registerHooks({
       return { url: `content-test:${specifier}`, shortCircuit: true };
     if (
       context.parentURL === new URL("content.ts", lib).href &&
-      ["./data", "./cms-ready"].includes(specifier)
+      ["./data", "./cms-ready", "./cms-timing"].includes(specifier)
     ) {
       return { url: new URL(`${specifier}.ts`, lib).href, shortCircuit: true };
     }
@@ -36,7 +36,7 @@ registerHooks({
       };
     }
     if (
-      ["content.ts", "data.ts", "cms-ready.ts", "team-roster.ts"].some(
+      ["content.ts", "data.ts", "cms-ready.ts", "cms-timing.ts", "team-roster.ts"].some(
         (name) => url === new URL(name, lib).href,
       )
     ) {

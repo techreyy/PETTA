@@ -2,6 +2,7 @@ import 'server-only';
 import { getPayload } from 'payload';
 import config from '@payload-config';
 import { cmsReady } from './cms-ready';
+import { withCMSTiming } from './cms-timing';
 
 export interface ServiceItem {
   id: string;
@@ -25,7 +26,7 @@ export async function getServices(): Promise<ServiceItem[]> {
     throw new Error('CMS is not configured. Configure DATABASE_URI and PAYLOAD_SECRET, or explicitly set DEMO_CONTENT=true for a demo.');
   }
   try {
-    const payload = await getPayload({ config });
+    const payload = withCMSTiming(await getPayload({ config }));
     const result = await payload.find({
       collection: 'services',
       overrideAccess: false,

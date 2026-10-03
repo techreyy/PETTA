@@ -10,11 +10,12 @@ registerHooks({
   resolve(specifier, context, nextResolve) {
     if (sources.has(specifier)) return { url: `services-test:${specifier}`, shortCircuit: true };
     if (specifier === './cms-ready') return { url: new URL('../src/lib/cms-ready.ts', import.meta.url).href, shortCircuit: true };
+    if (specifier === './cms-timing') return { url: new URL('../src/lib/cms-timing.ts', import.meta.url).href, shortCircuit: true };
     return nextResolve(specifier, context);
   },
   load(url, context, nextLoad) {
     if (url.startsWith('services-test:')) return { format: 'module', source: sources.get(url.slice(14)), shortCircuit: true };
-    if (/\/(services|cms-ready)\.ts$/.test(url)) return {
+    if (/\/(services|cms-ready|cms-timing)\.ts$/.test(url)) return {
       format: 'module', shortCircuit: true,
       source: ts.transpileModule(readFileSync(new URL(url), 'utf8'), { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText,
     };

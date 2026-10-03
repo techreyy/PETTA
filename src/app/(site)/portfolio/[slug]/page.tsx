@@ -24,8 +24,8 @@ export async function generateMetadata({ params }: ProjectDetailProps) {
 
 export default async function ProjectDetailPage({ params }: ProjectDetailProps) {
   const { slug } = await params;
-  const { projects } = await getContent();
-  const project = (await getProject(slug))?.project;
+  const [{ projects }, result] = await Promise.all([getContent(), getProject(slug)]);
+  const project = result?.project;
 
   if (!project) {
     notFound();

@@ -44,7 +44,20 @@ export function sanitizeDatabaseUri(rawUri?: string): string {
 }
 
 export function getDatabaseConfig(rawUri: string | undefined = process.env.DATABASE_URI): DatabaseConfig {
-  const connectionString = sanitizeDatabaseUri(rawUri);
+  let connectionString = sanitizeDatabaseUri(rawUri);
+  if (connectionString) {
+    try {
+      const url = new URL(connectionString);
+      // Neon transaction pooling supports the adapter's ordinary pg queries and transactions.
+      // Restrict rewriting to standard Neon endpoint names; keep provider/branch/database intact.
+      if (/^ep-[a-z0-9-]+\.[a-z0-9.-]+\.neon\.tech$/.test(url.hostname) && !url.hostname.split('.')[0].endsWith('-pooler')) {
+        url.hostname = url.hostname.replace('.', '-pooler.');
+        connectionString = url.toString();
+      }
+    } catch {
+      // Let pg report invalid connection strings as before.
+    }
+  }
   const isLocal =
     !connectionString ||
     connectionString.includes('localhost') ||

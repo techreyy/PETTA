@@ -1,6 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { getPayload } from "payload";
+import { withCMSTiming } from "./cms-timing";
 import config from "@payload-config";
 import { cmsReady } from "./cms-ready";
 import {
@@ -29,7 +30,8 @@ import type {
 } from "@/payload-types";
 import type { StudioSettings } from "./SettingsContext";
 
-export const cms = () => getPayload({ config });
+// getPayload caches both the instance and its initialization promise by config.
+export const cms = async () => withCMSTiming(await getPayload({ config }));
 
 // A configured CMS is authoritative, even when DEMO_CONTENT is enabled.
 // Missing configuration must not silently turn a production site into a demo,
@@ -290,8 +292,9 @@ export const getContent = cache(async () => {
   const result = await payload.find({
     collection: "projects",
     overrideAccess: false,
-    depth: 2,
+    depth: 1,
     limit: 1,
+    pagination: false,
     where: {
       and: [{ slug: { equals: slug } }, { _status: { equals: "published" } }],
     },
@@ -319,6 +322,7 @@ export const getContent = cache(async () => {
     overrideAccess: false,
     depth: 1,
     limit: 1,
+    pagination: false,
     where: {
       and: [{ slug: { equals: slug } }, { _status: { equals: "published" } }],
     },
