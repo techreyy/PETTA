@@ -1,7 +1,7 @@
 # AGENTS.md — Architecture Portfolio Website
 
 > **ACTIVE PROJECT SOURCE OF TRUTH**  
-> Last updated: 2026-10-03
+> Last updated: 2026-10-04
 > Reference: https://atelierriri.com/  
 > Goal: build a premium architecture website with comparable UX/features and original branding/assets/code.
 
@@ -156,6 +156,8 @@ Team item:
 `name, roleTitle, portrait, bio?, order, active`
 
 Team roster (2026-10-03): eight owner-supplied members in the requested order, from Principal Architect / Design Director to Business Development. Names, roles, ordering and portraits remain CMS-managed; missing portraits render initials. Superseded demo profiles are inactive and preserved.
+
+About founder portrait (2026-10-04): the principal spotlight resolves the founder by the existing CMS founder name from the same active Team data used by the grid, including its portrait. No independent hardcoded hero photo; missing portraits render initials. The existing dynamic layout reads CMS data per request; React cache is request-scoped.
 
 Service item:
 `title, description, order, active`
@@ -457,7 +459,10 @@ Overall: CORE WEBSITE IMPLEMENTED; CMS PARITY AND PRODUCTION PERFORMANCE AUDIT R
 
 Only change `[ ]` to `[x]` after verification.
 
-Latest update (2026-10-03):
+Latest update (2026-10-04):
+- About founder portrait now uses the same CMS Team member as the grid instead of a fixed Unsplash URL. Existing layout, text and image sizing are preserved; no records/media, upload behavior, schema or environment settings changed. Typecheck, lint, production build and 20 related tests passed; local Chrome desktop/mobile QA passed at 390/1440px using isolated photo fixtures. Production CMS edits were not performed.
+
+Previous update (2026-10-03):
 - Custom loading & offline PWA experience: implemented CSS-only architectural hairline spinner in loading.tsx, top hairline page transition progress bar (NavigationProgress), real-time online/offline detector and full-screen custom dark overlay (OfflineExperience), standalone /offline fallback page with no-index SEO protection, web app manifest, and Service Worker (public/sw.js) with strict exclusions for Payload admin, API, and sessions.
 - GitHub deployment: deployed performance query improvements, Neon pooler connection normalization, opt-in dev timing (`cms-timing.ts`), and performance audit documentation to origin/main.
 - Performance-only audit: detail reads avoid unused counts and nested category media; detail page reads start concurrently. Optional CMS timing is always disabled in production. Standard Neon hosts normalize to -pooler; deployed connection verification remains pending.
@@ -509,6 +514,14 @@ YYYY-MM-DD — Change title
 - Verified:
 - Notes:
 ```
+
+### 2026-10-04 - About founder portrait follows the CMS Team record
+- Changed: Removed the fixed Unsplash portrait from the founder spotlight. Hero and grid now resolve the same active CMS Team member's portrait; missing photos use initials. Existing founder-name lookup is reused, independent of team ordering.
+- Files/areas: src/app/(site)/about/page.tsx, tests/about-portrait.test.mjs, tests/cms-editorial-loader.mjs, both AGENTS.md files.
+- CMS/schema impact: None. No CMS writes, media deletion, upload changes, record removal or database reset.
+- Migration/env required: No. Existing force-dynamic layout and request-scoped React cache already read current CMS content on page requests; no revalidation/configuration changes needed.
+- Verified: Typecheck, ESLint, production build and 20 related tests passed. Regression covers two successive CMS portrait replacements overriding a legacy URL, reordered members, missing portrait and missing founder. Local production /about and isolated portrait fixtures passed Chrome checks at 390/1440px with no overflow or JavaScript errors; screenshots inspected.
+- Notes: Production CMS was not modified for testing. Portrait changes appear in both locations on the next page request/reload. Production deployment and a real production CMS edit remain owner-side verification.
 
 ### 2026-10-03 - Custom loading UI, offline experience and PWA service worker
 - Changed: Implemented minimalist architectural CSS-only loading state for route transitions (`loading.tsx`), top hairline navigation progress bar (`NavigationProgress.tsx`), real-time offline detection with bespoke dark Petta overlay and auto-reconnect refresh (`OfflineExperience.tsx`), dedicated offline fallback page (`/offline`), PWA manifest (`manifest.ts`), and lightweight Service Worker (`public/sw.js`) pre-caching static assets and offline view while strictly bypassing Payload admin, auth, and API routes.
@@ -656,14 +669,6 @@ YYYY-MM-DD — Change title
 - Migration/env required: No. Install locked dependencies normally on deployment.
 - Verified: 44 automated tests (19 DB/access, 17 editorial, 4 startup, 2 gallery, 2 homepage) passed; TypeScript (`tsc --noEmit`) 0 errors, ESLint 0 errors (4 pre-existing migration warnings), Next.js production build (`next build`) 100% clean. Authenticated headless Chrome testing on an isolated database verified Indonesian UI labels, 3 project form tabs ('Informasi Utama', 'Foto & Galeri', 'Publikasi') at 1440px and 390px with zero JavaScript errors.
 - Notes: Existing local bootstrap credentials did not authenticate; QA uses a separate temporary account/database, not changes to studio accounts. This task simplifies implemented CMS screens and does not add the missing homepage/navigation globals.
-
-### 2026-10-01 - Runtime recovery, lighter public data and media regression fixes
-- Changed: Restored local PostgreSQL; made default development startup wait for the database; reduced shared list payloads; fixed empty galleries, gallery image sizes, unresolved logos and referenced-logo media deletion; removed initial hero fade delay and lazy-loaded video. Localized three unchanged legacy category artworks after reproducing upstream image timeouts.
-- Files/areas: `web-app/package.json`, `web-app/scripts/dev-local.mjs`, `web-app/README.md`, `web-app/src/lib/content.ts`, `web-app/src/components/HomeView.tsx`, `web-app/src/app/(site)/portfolio/[slug]/page.tsx`, `web-app/src/cms/collections.ts`, regression tests, `web-app/scripts/localize-category-covers.ts`, `web-app/public/category-covers`, `AGENTS.md`.
-- CMS/schema impact: No schema change. Three category `coverImageUrl` values now reference local WebP assets; backup records retained under `.cache`.
-- Migration/env required: No new migration or environment variables. Other databases can run `node --env-file-if-exists=.env.local --import tsx scripts/localize-category-covers.ts`; deploy the resulting public assets together with the URL changes.
-- Verified: 44 automated tests passed in five runs, TypeScript and production build passed; ESLint zero errors/four existing migration warnings. Final Chrome production-browser run passed route, heading, overflow and status/category interaction checks across 8 routes at 390/768/1440px, plus mobile menu open/close, with zero JavaScript errors or HTTP resource failures after image localization.
-- Notes: Corrected previous broad completion claims: CMS homepage/navigation controls and other specified editorial models are not fully implemented. Local server timings do not establish production Core Web Vitals.
 
 Earlier history consolidated: branding, media, CMS, typography and responsive work from September-October 2026 remains reflected in the current specification. Detailed older entries remain in git history.
 

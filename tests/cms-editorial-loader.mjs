@@ -6,7 +6,7 @@ const root = new URL('../src/', import.meta.url);
 const stubs = {
   'next/image': `import React from 'react'; export default function Image({fill,priority,preload,...props}) { return React.createElement('img',props); }`,
   'next/link': `import React from 'react'; export default function Link(props) { return React.createElement('a',props); }`,
-  'framer-motion': `import React from 'react'; export const useReducedMotion = () => true; export const AnimatePresence = ({children}) => children; export const motion = new Proxy({}, {get: (_,tag) => ({initial,animate,exit,transition,whileInView,viewport,layoutId,...props}) => React.createElement(tag,props)});`,
+  'framer-motion': `import React from 'react'; export const useReducedMotion = () => true; export const useScroll = () => ({ scrollYProgress: 0 }); export const useTransform = () => 1; export const AnimatePresence = ({children}) => children; export const motion = new Proxy({}, {get: (_,tag) => ({initial,animate,exit,transition,whileInView,viewport,layoutId,...props}) => React.createElement(tag,props)});`,
 };
 registerHooks({
  resolve(s,c,next) {

@@ -52,6 +52,7 @@ const PILLARS = [
 export default function AboutPage() {
   const { team: STUDIO_TEAM } = useProjects();
   const { settings } = useStudioSettings();
+  const founder = STUDIO_TEAM.find((member) => member.name === settings.founder);
   const reducedMotion = useReducedMotion();
   const blueprintRef = useRef<HTMLDivElement>(null);
   const [activePillar, setActivePillar] = useState(0);
@@ -382,13 +383,15 @@ export default function AboutPage() {
             {/* Foto Portrait Pendiri */}
             <div className="lg:col-span-5">
               <div className="relative aspect-[3/4] w-full overflow-hidden bg-[#1C252E] border border-[#242E38]">
-                <Image
-                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80"
+                {founder?.portrait ? <Image
+                  src={founder.portrait}
                   alt={settings.founder}
                   fill
                   className="object-cover"
                   sizes="(max-width: 1024px) 100vw, 40vw"
-                />
+                /> : <div aria-hidden="true" className="flex h-full items-center justify-center text-5xl font-light tracking-widest text-[#6A9D94]">
+                  {settings.founder.split(",")[0].split(" ").filter((part) => !part.endsWith(".")).slice(0, 2).map((part) => part[0]).join("").toUpperCase()}
+                </div>}
                 <div className="absolute bottom-4 left-4 right-4 bg-[#14191E]/95 backdrop-blur-md p-3.5 border border-[#242E38] text-center">
                   <span className="text-xs font-mono uppercase tracking-widest text-[#6A9D94] block font-semibold">
                     Andi Thagfir · @aams_ir
@@ -404,7 +407,7 @@ export default function AboutPage() {
             <div className="lg:col-span-7 space-y-6">
               <div className="flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-[#6A9D94] font-semibold font-mono">
                 <Award className="w-4 h-4" />
-                <span>{STUDIO_TEAM.find((member) => member.name === settings.founder)?.role || "Principal Architect / Design Director"}</span>
+                <span>{founder?.role || "Principal Architect / Design Director"}</span>
               </div>
 
               <h2 className="text-3xl md:text-5xl font-light text-white leading-tight">
