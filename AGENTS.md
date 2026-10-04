@@ -283,6 +283,9 @@ Globals:
 homepageContent (implemented)
 - eyebrow, services, headline, leftParagraph, rightParagraph, founderName, ctaLabel
 
+aboutPageContent (implemented)
+- hero (title, intro, tagline), philosophy (eyebrow, title, text1, text2, metric label/text), mission (eyebrow, title, text1, text2, accountability, tags), four pillars (1-4 tags, titles, desc), principal architect (role, name, credentials, bio1, bio2, badge, social labels), team collective (eyebrow, heading, intro), business units, services, location, CTA banner
+
 siteSettings
 - studio name, logos, favicon, default SEO
 - contact information, social links, footer copy
@@ -462,7 +465,13 @@ Overall: CORE WEBSITE IMPLEMENTED; CMS PARITY AND PRODUCTION PERFORMANCE AUDIT R
 
 Only change `[ ]` to `[x]` after verification.
 
-Latest update (2026-10-04):
+Latest update (2026-10-05):
+- Added About Page Content global (`aboutPageContent`) making all key texts on `/about` CMS-editable (Hero, Philosophy, Mission, Four Tectonic Pillars, Principal Architect spotlight, Team collective intro, Business entities, Services, Location, and Consultation CTA) while strictly preserving layout, typography, animations, SVG blueprint geometry, and responsive behavior.
+- Additive database migration `20261004_110000_about_page_content` creates and seeds only the new table with non-destructive rollback. Safe fallback (`resolveAboutPageContent`) ensures the page never renders blank if unconfigured.
+- Converted `src/app/(site)/about/page.tsx` to Server Component with `force-dynamic` and instant cache invalidation via `revalidatePath('/about')` on CMS save.
+- Verified: `npm run typecheck` (0 errors), `npm run lint` (0 errors/warnings), full test suite (39 integration and editorial tests passed), Next.js production build succeeded, and headless Chromium browser QA at 390px and 1440px verified admin editing, revalidation, and 0 console errors.
+
+Previous update (2026-10-04):
 - Added Homepage Content global for seven positioning text fields with safe existing-copy fallback and corrected founder credentials. The homepage page boundary reads the global on each dynamic request, including client navigation; safe revalidation (`revalidatePath('/')`) ensures edits appear without a redeploy. Additive migration 20261004_100000_homepage_content creates/seeds only the new table and preserves edits on rerun/rollback. Typecheck, ESLint, unit/integration test suite (38 checks), Next.js production build, and Chromium browser QA at 390px/1440px (verifying admin edits, repeated saves, client navigation, and zero console errors) all passed.
 - About founder portrait now uses the same CMS Team member as the grid instead of a fixed Unsplash URL. Existing layout, text and image sizing are preserved; no records/media, upload behavior, schema or environment settings changed. Typecheck, lint, production build and 20 related tests passed; local Chrome desktop/mobile QA passed at 390/1440px using isolated photo fixtures. Production CMS edits were not performed.
 

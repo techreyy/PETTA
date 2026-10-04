@@ -108,10 +108,12 @@ export interface Config {
   globals: {
     siteSettings: SiteSetting;
     homepageContent: HomepageContent;
+    aboutPageContent: AboutPageContent;
   };
   globalsSelect: {
     siteSettings: SiteSettingsSelect<false> | SiteSettingsSelect<true>;
     homepageContent: HomepageContentSelect<false> | HomepageContentSelect<true>;
+    aboutPageContent: AboutPageContentSelect<false> | AboutPageContentSelect<true>;
   };
   locale: null;
   widgets: {
@@ -894,6 +896,89 @@ export interface HomepageContent {
   createdAt?: string | null;
 }
 /**
+ * Edit teks halaman About. Simpan untuk menerbitkan perubahan; desain, foto, dan struktur halaman tetap.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "aboutPageContent".
+ */
+export interface AboutPageContent {
+  id: number;
+  /**
+   * Pisahkan baris dengan Enter. Teks di antara **dua bintang** diberi aksen huruf miring toska.
+   */
+  heroTitle: string;
+  /**
+   * Gunakan {founderName} untuk menyisipkan nama pendiri. Teks di antara **dua bintang** tampil tebal.
+   */
+  heroIntro: string;
+  heroTagline: string;
+  philosophyEyebrow: string;
+  philosophyTitle: string;
+  /**
+   * Teks di antara *satu bintang* tampil miring (italic).
+   */
+  philosophyText1: string;
+  philosophyText2: string;
+  philosophyMetricLabel: string;
+  philosophyMetricText: string;
+  missionEyebrow: string;
+  missionTitle: string;
+  missionText1: string;
+  /**
+   * Teks di antara **dua bintang** tampil tebal.
+   */
+  missionText2: string;
+  missionAccountabilityLabel: string;
+  missionAccountabilityText: string;
+  missionStudioTag: string;
+  missionEstTag: string;
+  pillarsEyebrow: string;
+  pillarsHeading: string;
+  pillarsSubtitle: string;
+  pillar1Tag: string;
+  pillar1Title: string;
+  pillar1Desc: string;
+  pillar2Tag: string;
+  pillar2Title: string;
+  pillar2Desc: string;
+  pillar3Tag: string;
+  pillar3Title: string;
+  pillar3Desc: string;
+  pillar4Tag: string;
+  pillar4Title: string;
+  pillar4Desc: string;
+  principalRole: string;
+  principalName: string;
+  principalCredentials: string;
+  principalBio1: string;
+  principalBio2: string;
+  principalBadgeTitle: string;
+  principalBadgeSubtitle: string;
+  principalInstagramLabel: string;
+  principalFacebookLabel: string;
+  teamEyebrow: string;
+  teamHeading: string;
+  /**
+   * Teks di antara **dua bintang** tampil tebal.
+   */
+  teamIntro: string;
+  entitiesEyebrow: string;
+  entitiesHeading: string;
+  entitiesSubtitle: string;
+  servicesEyebrow: string;
+  servicesHeading: string;
+  servicesSubtitle: string;
+  locationHeading: string;
+  locationOfficeTitle: string;
+  locationAreasTitle: string;
+  ctaEyebrow: string;
+  ctaHeading: string;
+  ctaText: string;
+  ctaButtonLabel: string;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "siteSettings_select".
  */
@@ -925,6 +1010,72 @@ export interface HomepageContentSelect<T extends boolean = true> {
   rightParagraph?: T;
   founderName?: T;
   ctaLabel?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "aboutPageContent_select".
+ */
+export interface AboutPageContentSelect<T extends boolean = true> {
+  heroTitle?: T;
+  heroIntro?: T;
+  heroTagline?: T;
+  philosophyEyebrow?: T;
+  philosophyTitle?: T;
+  philosophyText1?: T;
+  philosophyText2?: T;
+  philosophyMetricLabel?: T;
+  philosophyMetricText?: T;
+  missionEyebrow?: T;
+  missionTitle?: T;
+  missionText1?: T;
+  missionText2?: T;
+  missionAccountabilityLabel?: T;
+  missionAccountabilityText?: T;
+  missionStudioTag?: T;
+  missionEstTag?: T;
+  pillarsEyebrow?: T;
+  pillarsHeading?: T;
+  pillarsSubtitle?: T;
+  pillar1Tag?: T;
+  pillar1Title?: T;
+  pillar1Desc?: T;
+  pillar2Tag?: T;
+  pillar2Title?: T;
+  pillar2Desc?: T;
+  pillar3Tag?: T;
+  pillar3Title?: T;
+  pillar3Desc?: T;
+  pillar4Tag?: T;
+  pillar4Title?: T;
+  pillar4Desc?: T;
+  principalRole?: T;
+  principalName?: T;
+  principalCredentials?: T;
+  principalBio1?: T;
+  principalBio2?: T;
+  principalBadgeTitle?: T;
+  principalBadgeSubtitle?: T;
+  principalInstagramLabel?: T;
+  principalFacebookLabel?: T;
+  teamEyebrow?: T;
+  teamHeading?: T;
+  teamIntro?: T;
+  entitiesEyebrow?: T;
+  entitiesHeading?: T;
+  entitiesSubtitle?: T;
+  servicesEyebrow?: T;
+  servicesHeading?: T;
+  servicesSubtitle?: T;
+  locationHeading?: T;
+  locationOfficeTitle?: T;
+  locationAreasTitle?: T;
+  ctaEyebrow?: T;
+  ctaHeading?: T;
+  ctaText?: T;
+  ctaButtonLabel?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

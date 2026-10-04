@@ -42,6 +42,27 @@ test('real PostgreSQL: permissions, drafts, gallery preservation and contact per
       assert.deepEqual(await payload.findGlobal({ slug: 'siteSettings' }), settingsBefore);
       assert.deepEqual(await payload.count({ collection: 'media' }), mediaBefore);
     });
+    await t.test('About Page Content migration, admin saves, public reads and access preserve existing data', async () => {
+      const { DEFAULT_ABOUT_PAGE_CONTENT } = await import('../src/lib/about-page-content');
+      const { up, down } = await import('../src/migrations/20261004_110000_about_page_content');
+      const initial = await payload.findGlobal({ slug: 'aboutPageContent', overrideAccess: false });
+      for (const [key, value] of Object.entries(DEFAULT_ABOUT_PAGE_CONTENT)) {
+        assert.equal(initial[key as keyof typeof DEFAULT_ABOUT_PAGE_CONTENT], value);
+      }
+      const admin = await payload.create({ collection: 'users', user: ownerUser, overrideAccess: false, data: { email: 'about-admin@example.test', name: 'About Admin', password, role: 'admin', active: true } });
+      const adminUser = { ...admin, collection: 'users' as const };
+      const edited = { philosophyTitle: 'Filosofi Baru Disimpan', missionTitle: 'Misi Baru Disimpan' };
+      for (const user of [undefined, editorUser, { ...adminUser, active: false }]) {
+        await assert.rejects(payload.updateGlobal({ slug: 'aboutPageContent', user, overrideAccess: false, data: edited }));
+      }
+      await payload.updateGlobal({ slug: 'aboutPageContent', user: adminUser, overrideAccess: false, data: edited });
+      const saved = await payload.findGlobal({ slug: 'aboutPageContent', overrideAccess: false });
+      assert.equal(saved.philosophyTitle, 'Filosofi Baru Disimpan');
+      assert.equal(saved.missionTitle, 'Misi Baru Disimpan');
+      await up({ db: payload.db.drizzle } as unknown as Parameters<typeof up>[0]);
+      await down();
+      assert.equal((await payload.findGlobal({ slug: 'aboutPageContent', overrideAccess: false })).philosophyTitle, 'Filosofi Baru Disimpan');
+    });
     const category = await payload.create({ collection: 'portfolioCategories', user: ownerUser, overrideAccess: false, data: { title: 'House', slug: 'house', description: 'Test category' } });
     const project = await payload.create({ collection: 'projects', user: ownerUser, overrideAccess: false, data: { title: 'Gallery test', slug: 'gallery-test', category: category.id, heroImageUrl: '/petta-logo-transparent.png', gallery: [{ imageUrl: '/one.jpg' }, { imageUrl: '/two.jpg' }], _status: 'published' } });
 
