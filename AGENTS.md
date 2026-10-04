@@ -87,7 +87,7 @@ Required sections:
 10. Inquiry CTA
 11. Footer: address, phone, email, socials
 
-Homepage settings control section visibility and featured selections.
+Homepage Content (2026-10-04) is a registered Payload Global for the positioning section only: eyebrow/location, service summary, headline, left/right paragraphs, founder name and CTA label. Owner/admin can save published text; anonymous and editor writes are denied. Defaults/fallback preserve existing copy with corrected founder credentials. Paragraphs support **bold** and {founderName}, rendered as escaped React text. Existing section visibility/featured selection requirements remain broader planned CMS work.
 
 ## 5. PORTFOLIO
 
@@ -280,6 +280,9 @@ inquiries
 Globals:
 
 ```text
+homepageContent (implemented)
+- eyebrow, services, headline, leftParagraph, rightParagraph, founderName, ctaLabel
+
 siteSettings
 - studio name, logos, favicon, default SEO
 - contact information, social links, footer copy
@@ -460,6 +463,7 @@ Overall: CORE WEBSITE IMPLEMENTED; CMS PARITY AND PRODUCTION PERFORMANCE AUDIT R
 Only change `[ ]` to `[x]` after verification.
 
 Latest update (2026-10-04):
+- Added Homepage Content global for seven positioning text fields with safe existing-copy fallback and corrected founder credentials. The homepage page boundary reads the global on each dynamic request, including client navigation; safe revalidation (`revalidatePath('/')`) ensures edits appear without a redeploy. Additive migration 20261004_100000_homepage_content creates/seeds only the new table and preserves edits on rerun/rollback. Typecheck, ESLint, unit/integration test suite (38 checks), Next.js production build, and Chromium browser QA at 390px/1440px (verifying admin edits, repeated saves, client navigation, and zero console errors) all passed.
 - About founder portrait now uses the same CMS Team member as the grid instead of a fixed Unsplash URL. Existing layout, text and image sizing are preserved; no records/media, upload behavior, schema or environment settings changed. Typecheck, lint, production build and 20 related tests passed; local Chrome desktop/mobile QA passed at 390/1440px using isolated photo fixtures. Production CMS edits were not performed.
 
 Previous update (2026-10-03):

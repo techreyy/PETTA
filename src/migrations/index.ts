@@ -7,6 +7,7 @@ import * as migration_20260929_161232_brand_logos from './20260929_161232_brand_
 import * as migration_20260930_183907_services from './20260930_183907_services';
 import * as migration_20261002_133000_seed_project_folder from './20261002_133000_seed_project_folder';
 import * as migration_20261003_100000_media_object_key from './20261003_100000_media_object_key';
+import * as migration_20261004_100000_homepage_content from './20261004_100000_homepage_content';
 
 export const migrations = [
   {
@@ -46,4 +47,5 @@ export const migrations = [
   },
   { up: migration_20261003_090000_team_roster.up, down: migration_20261003_090000_team_roster.down, name: '20261003_090000_team_roster' },
   { up: migration_20261003_100000_media_object_key.up, down: migration_20261003_100000_media_object_key.down, name: '20261003_100000_media_object_key' },
+  { up: migration_20261004_100000_homepage_content.up, down: migration_20261004_100000_homepage_content.down, name: '20261004_100000_homepage_content' },
 ];

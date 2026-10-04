@@ -107,9 +107,11 @@ export interface Config {
   fallbackLocale: null;
   globals: {
     siteSettings: SiteSetting;
+    homepageContent: HomepageContent;
   };
   globalsSelect: {
     siteSettings: SiteSettingsSelect<false> | SiteSettingsSelect<true>;
+    homepageContent: HomepageContentSelect<false> | HomepageContentSelect<true>;
   };
   locale: null;
   widgets: {
@@ -247,7 +249,6 @@ export interface Media {
    */
   alt: string;
   caption?: string | null;
-  _objectKey?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -724,7 +725,6 @@ export interface CompetitionsSelect<T extends boolean = true> {
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
   caption?: T;
-  _objectKey?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
@@ -870,6 +870,30 @@ export interface SiteSetting {
   createdAt?: string | null;
 }
 /**
+ * Edit teks pengenalan studio di homepage. Simpan untuk menerbitkan perubahan; desain dan tautan tetap.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "homepageContent".
+ */
+export interface HomepageContent {
+  id: number;
+  eyebrow: string;
+  services: string;
+  headline: string;
+  /**
+   * Gunakan {founderName} untuk menyisipkan nama pendiri dari field di bawah. Teks di antara **dua bintang** tampil tebal.
+   */
+  leftParagraph: string;
+  /**
+   * Teks di antara **dua bintang** tampil tebal. HTML tidak digunakan.
+   */
+  rightParagraph: string;
+  founderName: string;
+  ctaLabel: string;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "siteSettings_select".
  */
@@ -885,6 +909,22 @@ export interface SiteSettingsSelect<T extends boolean = true> {
   instagramFounder?: T;
   facebook?: T;
   logo?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "homepageContent_select".
+ */
+export interface HomepageContentSelect<T extends boolean = true> {
+  eyebrow?: T;
+  services?: T;
+  headline?: T;
+  leftParagraph?: T;
+  rightParagraph?: T;
+  founderName?: T;
+  ctaLabel?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

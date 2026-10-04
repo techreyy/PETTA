@@ -13,6 +13,16 @@ import {
 } from "@/lib/data";
 
 import { useStudioSettings } from "@/lib/SettingsContext";
+import { resolveHomepageContent, type HomepageCopy } from "@/lib/homepage-content";
+
+function homepageParagraph(text: string, founderName: string) {
+  // Support the existing bold emphasis without interpreting editor input as HTML.
+  return text.split(/(\*\*[^*]+\*\*)/g).map((part, index) => {
+    const bold = part.startsWith('**') && part.endsWith('**');
+    const value = (bold ? part.slice(2, -2) : part).replaceAll('{founderName}', founderName);
+    return bold ? <strong key={index}>{value}</strong> : value;
+  });
+}
 
 function getYouTubeEmbedUrl(url?: string): string | null {
   if (!url) return null;
@@ -38,10 +48,15 @@ function getYouTubeEmbedUrl(url?: string): string | null {
   return null;
 }
 
-export function HomeView() {
+export function HomeView({ homepageContent }: { homepageContent?: HomepageCopy } = {}) {
   const { settings } = useStudioSettings();
   const logos = settings.editorial?.logos || [];
   const homepage = settings.editorial?.homepage;
+  const copy = resolveHomepageContent(homepageContent || {
+    headline: homepage?.positioningTitle,
+    leftParagraph: homepage?.positioningHeadline,
+    rightParagraph: homepage?.positioningText,
+  });
   const { projects, categories: PORTFOLIO_CATEGORIES, news: NEWS_ITEMS } = useProjects();
   const reducedMotion = useReducedMotion();
   const [paused, setPaused] = useState(false);
@@ -176,43 +191,23 @@ export function HomeView() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
               <div className="lg:col-span-4">
                 <span className="text-xs uppercase tracking-[0.35em] text-[#6A9D94] font-semibold block mb-2">
-                  Petta Desain · Kendari
+                  {copy.eyebrow}
                 </span>
                 <p className="text-[#6B7785] text-sm tracking-widest uppercase">
-                  Arsitektur · Interior · Struktur Sipil
+                  {copy.services}
                 </p>
               </div>
 
               <div className="lg:col-span-8 space-y-8">
                 <h2 className="text-2xl md:text-4xl lg:text-5xl font-light leading-[1.25] text-[#14191E] tracking-tight">
-                  {homepage?.positioningTitle ||
-                    "Studio konsultan perancangan arsitektur berlisensi IAI yang berbasis di Kota Kendari, merajut estetika tropis modern dan ketahanan struktural."}
+                  {copy.headline}
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-[#53606E] text-sm font-light leading-relaxed pt-4 border-t border-[#E5E2DC]">
                   <p>
-                    {homepage?.positioningHeadline || (
-                      <>
-                        Didirikan oleh{" "}
-                        <strong>
-                          Ir. Ar. Andi Al-Mustaghfir Syah, MT., IAI
-                        </strong>
-                        , Petta Desain aktif berkarya sejak 2019 menangani
-                        perancangan kampus institusi, hotel transit, hingga
-                        hunian tapak prestisius.
-                      </>
-                    )}
+                    {homepageParagraph(copy.leftParagraph, copy.founderName)}
                   </p>
                   <p>
-                    {homepage?.positioningText || (
-                      <>
-                        Melalui ekosistem <strong>Petta Desain</strong>,{" "}
-                        <strong>Petta Konstruksi</strong>, dan{" "}
-                        <strong>Petta Printlab</strong>, kami menyediakan
-                        layanan lengkap mulai dari studi konseptual, gambar kerja
-                        teknis, pengurusan PBG & SLF, hingga perhitungan
-                        ketahanan gempa.
-                      </>
-                    )}
+                    {homepageParagraph(copy.rightParagraph, copy.founderName)}
                   </p>
                 </div>
                 <div>
@@ -220,7 +215,7 @@ export function HomeView() {
                     href="/about"
                     className="inline-flex items-center gap-2 text-xs tracking-[0.2em] uppercase font-semibold text-[#14191E] border-b-2 border-[#6A9D94] pb-1 hover:text-[#6A9D94] transition-colors"
                   >
-                    Kenali Studio, Pendiri & Tim Petta Desain
+                    {copy.ctaLabel}
                     <ArrowRight className="w-3.5 h-3.5 text-[#6A9D94]" />
                   </Link>
                 </div>

@@ -17,6 +17,31 @@ test('real PostgreSQL: permissions, drafts, gallery preservation and contact per
     const ownerUser = { ...owner, collection: 'users' as const };
     const editor = await payload.create({ collection: 'users', user: ownerUser, overrideAccess: false, data: { email: 'editor@example.test', name: 'Test Editor', password, role: 'editor', active: true } });
     const editorUser = { ...editor, collection: 'users' as const };
+    await t.test('Homepage Content migration, admin saves, public reads and access preserve existing data', async () => {
+      const { DEFAULT_HOMEPAGE_CONTENT } = await import('../src/lib/homepage-content');
+      const { up, down } = await import('../src/migrations/20261004_100000_homepage_content');
+      const initial = await payload.findGlobal({ slug: 'homepageContent', overrideAccess: false });
+      for (const [key, value] of Object.entries(DEFAULT_HOMEPAGE_CONTENT)) {
+        assert.equal(initial[key as keyof typeof DEFAULT_HOMEPAGE_CONTENT], value);
+      }
+      const settingsBefore = await payload.findGlobal({ slug: 'siteSettings' });
+      const mediaBefore = await payload.count({ collection: 'media' });
+      const admin = await payload.create({ collection: 'users', user: ownerUser, overrideAccess: false, data: { email: 'homepage-admin@example.test', name: 'Homepage Admin', password, role: 'admin', active: true } });
+      const adminUser = { ...admin, collection: 'users' as const };
+      const edited = { eyebrow: 'Edited location', services: 'Edited services', headline: 'Edited headline', leftParagraph: 'By **{founderName}**', rightParagraph: 'Edited right', founderName: 'Edited founder', ctaLabel: 'Edited CTA' };
+      for (const user of [undefined, editorUser, { ...adminUser, active: false }]) {
+        await assert.rejects(payload.updateGlobal({ slug: 'homepageContent', user, overrideAccess: false, data: edited }));
+      }
+      await payload.updateGlobal({ slug: 'homepageContent', user: adminUser, overrideAccess: false, data: edited });
+      const saved = await payload.findGlobal({ slug: 'homepageContent', overrideAccess: false });
+      for (const [key, value] of Object.entries(edited)) assert.equal(saved[key as keyof typeof edited], value);
+      await payload.updateGlobal({ slug: 'homepageContent', user: ownerUser, overrideAccess: false, data: { headline: 'Saved again' } });
+      await up({ db: payload.db.drizzle } as unknown as Parameters<typeof up>[0]);
+      await down();
+      assert.equal((await payload.findGlobal({ slug: 'homepageContent', overrideAccess: false })).headline, 'Saved again');
+      assert.deepEqual(await payload.findGlobal({ slug: 'siteSettings' }), settingsBefore);
+      assert.deepEqual(await payload.count({ collection: 'media' }), mediaBefore);
+    });
     const category = await payload.create({ collection: 'portfolioCategories', user: ownerUser, overrideAccess: false, data: { title: 'House', slug: 'house', description: 'Test category' } });
     const project = await payload.create({ collection: 'projects', user: ownerUser, overrideAccess: false, data: { title: 'Gallery test', slug: 'gallery-test', category: category.id, heroImageUrl: '/petta-logo-transparent.png', gallery: [{ imageUrl: '/one.jpg' }, { imageUrl: '/two.jpg' }], _status: 'published' } });
 

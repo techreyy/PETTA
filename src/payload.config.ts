@@ -12,6 +12,7 @@ import { adminCollection, adminFields } from './cms/admin-presentation';
 import { Categories, Inquiries, Media, News, Projects, Users, Team, Awards, Competitions } from './cms/collections';
 import { BrandLogos, Services } from './cms/editorial';
 import { isOwner } from './cms/access';
+import { HomepageContent } from './cms/homepage-content';
 import { STUDIO_INFO } from './lib/data';
 import { migrations } from './migrations';
 import { getDatabaseConfig } from './lib/db-config';
@@ -61,7 +62,7 @@ export default buildConfig({
   globals: [{ slug: 'siteSettings', label: 'Profil & Kontak Studio', admin: { group: 'Identitas Studio', description: 'Ubah identitas, kontak, media sosial dan logo studio. Pengaturan ini hanya dapat diubah oleh pemilik.' }, access: { read: () => true, update: isOwner }, fields: adminFields([
     ...Object.entries(STUDIO_INFO).map(([name, defaultValue]) => ({ name, type: 'text' as const, defaultValue, required: true })),
     { name: 'logo', type: 'upload', relationTo: 'media' },
-  ]) }],
+  ]) }, HomepageContent],
   cors: [process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'],
   csrf: [process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'],
   plugins: isS3Configured(s3Config) ? [s3Storage({
