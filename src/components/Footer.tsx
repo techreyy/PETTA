@@ -1,5 +1,6 @@
 "use client";
 
+import { fillCopyTemplate } from "@/lib/page-content";
 import React from "react";
 import Link from "next/link";
 import { PettaLogo } from "@/components/PettaLogo";
@@ -8,7 +9,7 @@ import { InstagramIcon, FacebookIcon } from "@/components/SocialIcons";
 import { useStudioSettings } from "@/lib/SettingsContext";
 
 export function Footer() {
-  const { settings } = useStudioSettings();
+  const { settings, siteCopy: copy } = useStudioSettings();
 
   return (
     <footer className="bg-[#14191E] text-white border-t border-[#242E38] pt-20 pb-12">
@@ -18,7 +19,7 @@ export function Footer() {
           <div className="lg:col-span-4 space-y-6">
             <PettaLogo className="h-10 md:h-12 w-auto" />
             <p className="text-xs text-[#A2AFBD] font-light leading-relaxed max-w-sm">
-              {settings.name} adalah studio biro konsultan arsitektur, interior, dan struktur yang berpusat di Kota Kendari. Didirikan oleh arsitek {settings.founder}.
+              {fillCopyTemplate(copy.footerDescription, { name: settings.name, founder: settings.founder })}
             </p>
             <div className="flex items-center gap-4 text-[#A2AFBD]">
               <a
@@ -26,7 +27,7 @@ export function Footer() {
                 target="_blank"
                 rel="noreferrer noopener"
                 className="w-9 h-9 rounded-full border border-[#242E38] flex items-center justify-center hover:text-[#6A9D94] hover:border-[#6A9D94] transition-colors"
-                title="Instagram Petta Desain"
+                title={copy.footerInstagramLabel}
               >
                 <InstagramIcon className="w-4 h-4" />
               </a>
@@ -35,7 +36,7 @@ export function Footer() {
                 target="_blank"
                 rel="noreferrer noopener"
                 className="w-9 h-9 rounded-full border border-[#242E38] flex items-center justify-center hover:text-[#6A9D94] hover:border-[#6A9D94] transition-colors"
-                title="Instagram Founder"
+                title={copy.footerFounderInstagramLabel}
               >
                 <InstagramIcon className="w-4 h-4 text-[#6A9D94]" />
               </a>
@@ -44,7 +45,7 @@ export function Footer() {
                 target="_blank"
                 rel="noreferrer noopener"
                 className="w-9 h-9 rounded-full border border-[#242E38] flex items-center justify-center hover:text-[#6A9D94] hover:border-[#6A9D94] transition-colors"
-                title="Facebook Petta Desain"
+                title={copy.footerFacebookLabel}
               >
                 <FacebookIcon className="w-4 h-4" />
               </a>
@@ -54,42 +55,42 @@ export function Footer() {
           {/* Nav Links */}
           <div className="lg:col-span-3 space-y-4">
             <h4 className="text-xs uppercase tracking-[0.25em] text-[#6A9D94] font-semibold">
-              Eksplorasi
+              {copy.footerExplore}
             </h4>
             <ul className="space-y-2.5 text-xs text-[#A2AFBD]">
               <li>
                 <Link href="/portfolio" className="hover:text-white transition-colors">
-                  Portofolio Lengkap
+                  {copy.footerPortfolio}
                 </Link>
               </li>
               <li>
                 <Link href="/portfolio/category/private-house" className="hover:text-white transition-colors">
-                  Private House
+                  {copy.footerPrivateHouse}
                 </Link>
               </li>
               <li>
                 <Link href="/portfolio/category/commercial-building" className="hover:text-white transition-colors">
-                  Commercial &amp; Campus
+                  {copy.footerCommercial}
                 </Link>
               </li>
               <li>
                 <Link href="/portfolio/category/interior-design" className="hover:text-white transition-colors">
-                  Interior Design
+                  {copy.footerInterior}
                 </Link>
               </li>
               <li>
                 <Link href="/services" className="hover:text-white transition-colors">
-                  Services
+                  {copy.footerServices}
                 </Link>
               </li>
               <li>
                 <Link href="/about" className="hover:text-white transition-colors">
-                  Tentang Petta Desain
+                  {copy.footerAbout}
                 </Link>
               </li>
               <li>
                 <Link href="/awards" className="hover:text-white transition-colors">
-                  Awards &amp; Sayembara
+                  {copy.footerAwards}
                 </Link>
               </li>
             </ul>
@@ -98,21 +99,21 @@ export function Footer() {
           {/* Group Entities */}
           <div className="lg:col-span-2 space-y-4">
             <h4 className="text-xs uppercase tracking-[0.25em] text-[#6A9D94] font-semibold">
-              Petta Group
+              {copy.footerGroup}
             </h4>
             <ul className="space-y-2.5 text-xs text-[#A2AFBD]">
-              <li className="text-white font-medium">Petta Desain</li>
-              <li className="text-white font-medium">Petta Konstruksi</li>
-              <li className="text-white font-medium">Petta Printlab</li>
-              <li className="pt-2 text-[11px] text-[#6B7785]">Archtech Kendari</li>
-              <li className="text-[11px] text-[#6B7785]">Arsitek Kendari Network</li>
+              <li className="text-white font-medium">{copy.footerDesign}</li>
+              <li className="text-white font-medium">{copy.footerConstruction}</li>
+              <li className="text-white font-medium">{copy.footerPrintlab}</li>
+              <li className="pt-2 text-[11px] text-[#6B7785]">{copy.footerArchtech}</li>
+              <li className="text-[11px] text-[#6B7785]">{copy.footerNetwork}</li>
             </ul>
           </div>
 
           {/* Contact Details */}
           <div className="lg:col-span-3 space-y-4">
             <h4 className="text-xs uppercase tracking-[0.25em] text-[#6A9D94] font-semibold">
-              Kantor Studio
+              {copy.footerOffice}
             </h4>
             <div className="space-y-3 text-xs text-[#A2AFBD] font-light">
               <p className="flex items-start gap-2.5">
@@ -137,10 +138,10 @@ export function Footer() {
 
         {/* Bottom Bar */}
         <div className="pt-8 flex flex-col md:flex-row items-center justify-between text-xs text-[#6B7785] gap-4">
-          <p>© {new Date().getFullYear()} {settings.name}. Hak Cipta Dilindungi Undang-Undang.</p>
+          <p>{fillCopyTemplate(copy.footerCopyright, { year: String(new Date().getFullYear()), name: settings.name })}</p>
           <div className="flex items-center gap-6">
             <span>{settings.founder}</span>
-            <span>Kendari, Sulawesi Tenggara</span>
+            <span>{copy.footerLocation}</span>
           </div>
         </div>
       </div>

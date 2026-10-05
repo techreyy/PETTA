@@ -1,3 +1,4 @@
+import { getPageContent } from "@/lib/get-page-content";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default async function ServicesPage() {
-  const services = await getServices();
+  const [services, copy] = await Promise.all([getServices(), getPageContent("servicesPageContent")]);
 
   return (
     <div className="pt-32 pb-24 md:pb-36 min-h-screen bg-[#F9F8F6] text-[#14191E]">
@@ -21,10 +22,10 @@ export default async function ServicesPage() {
         </div>
         <div className="grid lg:grid-cols-12 gap-8 lg:gap-16 items-end mb-16 md:mb-24">
           <div className="lg:col-span-7">
-            <p className="text-xs uppercase tracking-[0.25em] text-[#39756B] mb-6">Kapabilitas Studio</p>
-            <h1 id="services-heading" className="text-[clamp(3rem,7vw,6rem)] font-light tracking-[-0.045em] leading-[1.1]">Services<span className="text-[#6A9D94]">.</span></h1>
+            <p className="text-xs uppercase tracking-[0.25em] text-[#39756B] mb-6">{copy.eyebrow}</p>
+            <h1 id="services-heading" className="text-[clamp(3rem,7vw,6rem)] font-light tracking-[-0.045em] leading-[1.1]">{copy.heading}<span className="text-[#6A9D94]">.</span></h1>
           </div>
-          <p className="lg:col-span-5 text-sm text-[#53606E] leading-relaxed">Setiap proyek berawal dari kebutuhan yang berbeda. Temukan layanan studio kami dan diskusikan ruang lingkup yang sesuai dengan visi Anda.</p>
+          <p className="lg:col-span-5 text-sm text-[#53606E] leading-relaxed">{copy.intro}</p>
         </div>
         {services.length > 0 ? (
           <div className="border-t border-[#E5E2DC]">
@@ -37,15 +38,15 @@ export default async function ServicesPage() {
             ))}
           </div>
         ) : (
-          <p className="py-10 border-y border-[#E5E2DC] text-sm text-[#53606E]">Hubungi studio untuk mendiskusikan layanan dan kebutuhan proyek Anda.</p>
+          <p className="py-10 border-y border-[#E5E2DC] text-sm text-[#53606E]">{copy.emptyText}</p>
         )}
         <div className="mt-16 md:mt-24 p-8 md:p-12 rounded-2xl bg-[#14191E] text-white flex flex-col md:flex-row md:items-center md:justify-between gap-8">
           <div>
-            <p className="text-xs uppercase tracking-[0.25em] text-[#6A9D94] mb-4">Mulai Percakapan</p>
-            <h2 className="text-2xl md:text-3xl font-light tracking-tight">Apa yang ingin Anda wujudkan?</h2>
+            <p className="text-xs uppercase tracking-[0.25em] text-[#6A9D94] mb-4">{copy.ctaEyebrow}</p>
+            <h2 className="text-2xl md:text-3xl font-light tracking-tight">{copy.ctaHeading}</h2>
           </div>
           <Link href="/contact" className="inline-flex items-center justify-center gap-3 rounded-full border border-[#6A9D94] px-6 py-4 text-xs uppercase tracking-widest hover:bg-[#6A9D94] hover:text-[#14191E] transition-colors shrink-0">
-            Diskusikan Proyek <ArrowUpRight className="w-4 h-4" aria-hidden="true" />
+            {copy.ctaLabel + " "}<ArrowUpRight className="w-4 h-4" aria-hidden="true" />
           </Link>
         </div>
       </section>

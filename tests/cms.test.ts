@@ -17,6 +17,36 @@ test('real PostgreSQL: permissions, drafts, gallery preservation and contact per
     const ownerUser = { ...owner, collection: 'users' as const };
     const editor = await payload.create({ collection: 'users', user: ownerUser, overrideAccess: false, data: { email: 'editor@example.test', name: 'Test Editor', password, role: 'editor', active: true } });
     const editorUser = { ...editor, collection: 'users' as const };
+    await t.test('five page-text globals preserve existing records, permissions and saved copy across migration reruns', async () => {
+      const { PAGE_CONTENT_DEFAULTS } = await import('../src/lib/page-content');
+      const { up, down } = await import('../src/migrations/20261005_100000_page_text_content');
+      const collections = ['projects', 'portfolioCategories', 'services', 'news', 'awards', 'competitions', 'team', 'media', 'users'] as const;
+      const snapshot = async () => Promise.all(collections.map(collection => payload.find({ collection, depth: 0, pagination: false })));
+      const admin = await payload.create({ collection: 'users', user: ownerUser, overrideAccess: false, data: { email: 'batch-admin@example.test', name: 'Batch Admin', password, role: 'admin', active: true } });
+      const adminUser = { ...admin, collection: 'users' as const };
+      const before = await snapshot();
+      const profile = await payload.findGlobal({ slug: 'siteSettings', depth: 0 });
+      for (const slug of Object.keys(PAGE_CONTENT_DEFAULTS) as (keyof typeof PAGE_CONTENT_DEFAULTS)[]) {
+        const copy = PAGE_CONTENT_DEFAULTS[slug];
+        const initial = await payload.findGlobal({ slug, overrideAccess: false }) as unknown as Record<string, unknown>;
+        for (const [field, value] of Object.entries(copy)) assert.equal(initial[field], value, `${slug}.${field} default`);
+        const edited = Object.fromEntries(Object.keys(copy).map(key => [key, `Edited ${slug} ${key}`]));
+        for (const user of [undefined, editorUser, { ...adminUser, active: false }]) {
+          await assert.rejects(payload.updateGlobal({ slug, data: edited, user, overrideAccess: false }));
+        }
+        await payload.updateGlobal({ slug, data: edited, user: adminUser, overrideAccess: false });
+        const saved = await payload.findGlobal({ slug, overrideAccess: false }) as unknown as Record<string, unknown>;
+        for (const [field, value] of Object.entries(edited)) assert.equal(saved[field], value);
+        const firstKey = Object.keys(copy)[0];
+        await payload.updateGlobal({ slug, data: { [firstKey]: 'Saved a second time' }, user: ownerUser, overrideAccess: false });
+        await up({ db: payload.db.drizzle } as unknown as Parameters<typeof up>[0]);
+        await down();
+        const reread = await payload.findGlobal({ slug, overrideAccess: false }) as unknown as Record<string, unknown>;
+        assert.equal(reread[firstKey], 'Saved a second time');
+      }
+      assert.deepEqual(await snapshot(), before);
+      assert.deepEqual(await payload.findGlobal({ slug: 'siteSettings', depth: 0 }), profile);
+    });
     await t.test('Homepage Content migration, admin saves, public reads and access preserve existing data', async () => {
       const { DEFAULT_HOMEPAGE_CONTENT } = await import('../src/lib/homepage-content');
       const { up, down } = await import('../src/migrations/20261004_100000_homepage_content');

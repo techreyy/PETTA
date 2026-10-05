@@ -5,9 +5,9 @@ import { DEFAULT_ABOUT_PAGE_CONTENT } from '../lib/about-page-content';
 
 export const AboutPageContent: GlobalConfig = {
   slug: 'aboutPageContent',
-  label: 'About Page Content',
+  label: 'Tentang Kami',
   admin: {
-    group: 'Konten Website',
+    group: 'KONTEN WEBSITE',
     description: 'Edit teks halaman About. Simpan untuk menerbitkan perubahan; desain, foto, dan struktur halaman tetap.',
   },
   access: { read: () => true, update: canPublish },

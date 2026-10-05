@@ -43,7 +43,7 @@ function NavUnderline({ isActive, navKey, activeKey }: { isActive: boolean; navK
 
 function HeaderContent() {
   const { categories } = useProjects();
-  const { settings } = useStudioSettings();
+  const { settings, siteCopy: copy } = useStudioSettings();
   const CATEGORY_ITEMS = useMemo(
     () => categories.map(c => ({ name: c.title, href: `/portfolio/category/${c.slug}` })),
     [categories]
@@ -123,7 +123,7 @@ function HeaderContent() {
                   activeKey === "home" ? "text-[#FFFFFF] font-medium" : "text-[#E1E7EC] hover:text-[#FFFFFF]"
                 }`}
               >
-                <span>Home</span>
+                <span>{copy.navHome}</span>
                 <NavUnderline isActive={activeKey === "home"} navKey="home" activeKey={activeKey} />
               </Link>
 
@@ -143,7 +143,7 @@ function HeaderContent() {
                     activeKey === "projects" ? "text-[#FFFFFF] font-medium" : "text-[#E1E7EC] hover:text-[#FFFFFF]"
                   }`}
                 >
-                  <span>Projects</span>
+                  <span>{copy.navProjects}</span>
                   <ChevronDown
                     className={`w-3.5 h-3.5 transition-transform duration-300 ${
                       dropdownOpen ? "rotate-180 text-[#6A9D94]" : "text-[#A2AFBD] group-hover:text-[#6A9D94]"
@@ -193,7 +193,7 @@ function HeaderContent() {
                 aria-current={activeKey === "services" ? "page" : undefined}
                 className={`relative py-1.5 transition-colors duration-300 group ${activeKey === "services" ? "text-[#FFFFFF] font-medium" : "text-[#E1E7EC] hover:text-[#FFFFFF]"}`}
               >
-                <span>Services</span>
+                <span>{copy.navServices}</span>
                 <NavUnderline isActive={activeKey === "services"} navKey="services" activeKey={activeKey} />
               </Link>
 
@@ -204,7 +204,7 @@ function HeaderContent() {
                   activeKey === "awards" ? "text-[#FFFFFF] font-medium" : "text-[#E1E7EC] hover:text-[#FFFFFF]"
                 }`}
               >
-                <span>Awards &amp; Sayembara</span>
+                <span>{copy.navAwards}</span>
                 <NavUnderline isActive={activeKey === "awards"} navKey="awards" activeKey={activeKey} />
               </Link>
 
@@ -215,7 +215,7 @@ function HeaderContent() {
                   activeKey === "news" ? "text-[#FFFFFF] font-medium" : "text-[#E1E7EC] hover:text-[#FFFFFF]"
                 }`}
               >
-                <span>What&apos;s On</span>
+                <span>{copy.navNews}</span>
                 <NavUnderline isActive={activeKey === "news"} navKey="news" activeKey={activeKey} />
               </Link>
 
@@ -226,7 +226,7 @@ function HeaderContent() {
                   activeKey === "about" ? "text-[#FFFFFF] font-medium" : "text-[#E1E7EC] hover:text-[#FFFFFF]"
                 }`}
               >
-                <span>About Us</span>
+                <span>{copy.navAbout}</span>
                 <NavUnderline isActive={activeKey === "about"} navKey="about" activeKey={activeKey} />
               </Link>
 
@@ -237,7 +237,7 @@ function HeaderContent() {
                   activeKey === "contact" ? "text-[#FFFFFF] font-medium" : "text-[#E1E7EC] hover:text-[#FFFFFF]"
                 }`}
               >
-                <span>Contact Us</span>
+                <span>{copy.navContact}</span>
                 <NavUnderline isActive={activeKey === "contact"} navKey="contact" activeKey={activeKey} />
               </Link>
             </nav>
@@ -248,7 +248,7 @@ function HeaderContent() {
                 href="/contact"
                 className="inline-flex items-center gap-1.5 text-xs tracking-[0.18em] uppercase font-medium border border-[#6A9D94] text-[#FFFFFF] px-4 py-2 rounded-full hover:bg-[#6A9D94] hover:text-[#14191E] transition-all duration-300 shadow-xs"
               >
-                Inquire
+                {copy.navInquire}
                 <ArrowUpRight className="w-3.5 h-3.5" />
               </Link>
             </div>
@@ -287,7 +287,7 @@ function HeaderContent() {
                   activeKey === "home" ? "text-[#6A9D94] font-medium" : "text-[#A2AFBD]"
                 }`}
               >
-                Home
+                {copy.navHome}
               </Link>
 
               {/* Mobile Projects Accordion */}
@@ -299,7 +299,7 @@ function HeaderContent() {
                     activeKey === "projects" ? "text-[#6A9D94] font-medium" : "text-[#A2AFBD]"
                   }`}
                 >
-                  <span>Projects</span>
+                  <span>{copy.navProjects}</span>
                   <ChevronDown className={`w-5 h-5 transition-transform ${mobileProjectsOpen ? "rotate-180" : ""}`} />
                 </button>
 
@@ -310,7 +310,7 @@ function HeaderContent() {
                       onClick={closeMobile}
                       className="block py-3 text-sm text-[#F4F3EF] hover:text-[#6A9D94]"
                     >
-                      All Disciplines
+                      {copy.navAllDisciplines}
                     </Link>
                     {CATEGORY_ITEMS.map((item) => (
                       <Link
@@ -332,7 +332,7 @@ function HeaderContent() {
                 aria-current={activeKey === "services" ? "page" : undefined}
                 className={`text-xl tracking-wider uppercase font-light ${activeKey === "services" ? "text-[#6A9D94] font-medium" : "text-[#A2AFBD]"}`}
               >
-                Services
+                {copy.navServices}
               </Link>
 
               <Link
@@ -342,7 +342,7 @@ function HeaderContent() {
                   activeKey === "awards" ? "text-[#6A9D94] font-medium" : "text-[#A2AFBD]"
                 }`}
               >
-                Awards &amp; Sayembara
+                {copy.navAwards}
               </Link>
 
               <Link
@@ -352,7 +352,7 @@ function HeaderContent() {
                   activeKey === "news" ? "text-[#6A9D94] font-medium" : "text-[#A2AFBD]"
                 }`}
               >
-                What&apos;s On
+                {copy.navNews}
               </Link>
 
               <Link
@@ -362,7 +362,7 @@ function HeaderContent() {
                   activeKey === "about" ? "text-[#6A9D94] font-medium" : "text-[#A2AFBD]"
                 }`}
               >
-                About Us
+                {copy.navAbout}
               </Link>
 
               <Link
@@ -372,19 +372,19 @@ function HeaderContent() {
                   activeKey === "contact" ? "text-[#6A9D94] font-medium" : "text-[#A2AFBD]"
                 }`}
               >
-                Contact Us
+                {copy.navContact}
               </Link>
             </div>
 
             <div className="shrink-0 border-t border-[#242E38] pt-6 space-y-4">
-              <p className="text-xs uppercase tracking-widest text-[#A2AFBD]">Kendari · Sulawesi Tenggara</p>
+              <p className="text-xs uppercase tracking-widest text-[#A2AFBD]">{copy.navLocation}</p>
               <p className="text-sm font-light text-[#FFFFFF]">{settings.email}</p>
               <Link
                 href="/contact"
                 onClick={closeMobile}
                 className="w-full flex items-center justify-center py-3.5 bg-[#6A9D94] text-[#14191E] text-xs tracking-widest uppercase font-semibold mt-4 rounded-xl"
               >
-                Start a Conversation
+                {copy.navConversation}
               </Link>
             </div>
           </motion.div>

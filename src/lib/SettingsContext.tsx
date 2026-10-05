@@ -1,5 +1,6 @@
 "use client";
 import { createContext, useContext } from 'react';
+import { PAGE_CONTENT_DEFAULTS, type PageContent } from './page-content';
 import { STUDIO_INFO } from './data';
 export type StudioSettings = typeof STUDIO_INFO & {
   customLogoUrl?: string;
@@ -24,8 +25,8 @@ export type StudioSettings = typeof STUDIO_INFO & {
     };
   };
 };
-const SettingsContext = createContext<{ settings: StudioSettings }>({ settings: STUDIO_INFO });
-export function SettingsProvider({ settings, children }: { settings: StudioSettings; children: React.ReactNode }) {
-  return <SettingsContext.Provider value={{ settings }}>{children}</SettingsContext.Provider>;
+const SettingsContext = createContext<{ settings: StudioSettings; siteCopy: PageContent<"siteTextContent"> }>({ settings: STUDIO_INFO, siteCopy: PAGE_CONTENT_DEFAULTS.siteTextContent });
+export function SettingsProvider({ settings, siteCopy = PAGE_CONTENT_DEFAULTS.siteTextContent, children }: { settings: StudioSettings; siteCopy?: PageContent<"siteTextContent">; children: React.ReactNode }) {
+  return <SettingsContext.Provider value={{ settings, siteCopy }}>{children}</SettingsContext.Provider>;
 }
 export function useStudioSettings() { return useContext(SettingsContext); }

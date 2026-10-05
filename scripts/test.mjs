@@ -23,13 +23,23 @@ try {
       'tests/db-config.test.ts',
       'tests/cms-timing.test.ts',
       'tests/s3-config.test.ts',
-      'tests/loading-offline.test.ts'
+      'tests/loading-offline.test.ts',
+      'tests/page-content.test.ts'
     ], {
       stdio: 'inherit', env: { ...process.env, DATABASE_URI: uri.href, PETTA_TEST_DATABASE: name, PAYLOAD_MIGRATING: 'true' }, windowsHide: true,
     });
     child.on('error', reject);
     child.on('exit', value => resolve(value ?? 1));
   });
+  if (code === 0) {
+    code = await new Promise((resolve, reject) => {
+      const child = spawn(process.execPath, [
+        '--import', './tests/page-content-loader.mjs', '--test', 'tests/page-content-render.test.mjs',
+      ], { stdio: 'inherit', windowsHide: true });
+      child.on('error', reject);
+      child.on('exit', value => resolve(value ?? 1));
+    });
+  }
 } finally {
   // The child has exited, so no CMS connection can reconnect to this disposable database.
   if (!/^petta_test_\d+$/.test(name)) throw new Error('Refusing to remove an unexpected database.');

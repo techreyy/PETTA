@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { DM_Sans, Cormorant_Garamond } from "next/font/google";
 import "../globals.css";
+import { getPageContent } from '@/lib/get-page-content';
 import { getContent } from '@/lib/content';
 import { MotionProvider } from '@/components/MotionProvider';
 import { Header } from "@/components/Header";
@@ -47,7 +48,7 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const content = await getContent();
+  const [content, siteCopy] = await Promise.all([getContent(), getPageContent("siteTextContent")]);
   return (
     <html
       lang="id"
@@ -68,7 +69,7 @@ export default async function RootLayout({
           <NavigationProgress />
         </Suspense>
         <OfflineExperience />
-        <SettingsProvider settings={content.settings}>
+        <SettingsProvider settings={content.settings} siteCopy={siteCopy}>
           <ProjectProvider
             projects={content.projects}
             categories={content.categories}

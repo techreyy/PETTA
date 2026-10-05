@@ -1,7 +1,7 @@
 # AGENTS.md — Architecture Portfolio Website
 
 > **ACTIVE PROJECT SOURCE OF TRUTH**  
-> Last updated: 2026-10-04
+> Last updated: 2026-10-05
 > Reference: https://atelierriri.com/  
 > Goal: build a premium architecture website with comparable UX/features and original branding/assets/code.
 
@@ -245,6 +245,8 @@ Admin refinement (2026-10-02): project status uses a dropdown backed by the exis
 
 Authorization must be enforced server-side, not by hiding buttons only.
 
+Text-only CMS batch (2026-10-05): servicesPageContent (7 fields), awardsPageContent (22), newsPageContent (4), contactPageContent (37), and siteTextContent (32) expose the original public copy. Admin labels are Layanan, Penghargaan & Sayembara, Berita / What's On, Kontak, and Site Settings. siteSettings remains Profil & Kontak Studio; contact/social values and dynamic collection items are not duplicated. Header/footer URLs and contact option values remain fixed. Each field has an original-copy fallback; dynamic request reads and afterChange revalidation require no redeploy. Owner/admin can publish edits; existing authorization is unchanged. Details: web-app/docs/cms-text-batch-2026-10-05.md.
+
 ## 10. PAYLOAD MODEL
 
 Collections:
@@ -280,6 +282,12 @@ inquiries
 Globals:
 
 ```text
+servicesPageContent / awardsPageContent / newsPageContent / contactPageContent (implemented)
+- original page headings, descriptions, section labels, existing CTA and supporting/form text
+
+siteTextContent (implemented; admin label Site Settings)
+- navigation labels and existing footer text; fixed routes, existing profile/social sources
+
 homepageContent (implemented)
 - eyebrow, services, headline, leftParagraph, rightParagraph, founderName, ctaLabel
 
@@ -465,7 +473,13 @@ Overall: CORE WEBSITE IMPLEMENTED; CMS PARITY AND PRODUCTION PERFORMANCE AUDIT R
 
 Only change `[ ]` to `[x]` after verification.
 
-Latest update (2026-10-05):
+Latest update (2026-10-05, CMS text batch):
+- Added five text-only Globals with 102 existing-copy defaults, safe field/query fallbacks, request-scoped reads and route/layout revalidation. Services, Awards, News, Contact, navigation and footer now expose their existing editorial text.
+- Kept Profil & Kontak Studio on siteSettings; new Site Settings uses siteTextContent. Existing item collections, media, auth, routes, providers and production records are unchanged. Admin Globals use KONTEN WEBSITE; content collections use Koleksi Konten with unchanged labels/slugs.
+- Additive Payload migration 20261005_100000_page_text_content creates/seeds only five new tables, preserves edits on rerun and retains data on rollback. No new environment variables.
+- Verified: typecheck, lint, production build, npm test (40 database/unit + 4 rendering/loader checks), 3 Services regressions, identical default markup for six views, and Chrome mobile/desktop copy/layout comparisons. UI saves/revalidation, login, filters, form and local upload QA use an isolated database. Production R2 upload/deployment health remains separate verification. Evidence and limits: web-app/docs/cms-text-batch-2026-10-05.md.
+
+Previous update (2026-10-05):
 - Added About Page Content global (`aboutPageContent`) making all key texts on `/about` CMS-editable (Hero, Philosophy, Mission, Four Tectonic Pillars, Principal Architect spotlight, Team collective intro, Business entities, Services, Location, and Consultation CTA) while strictly preserving layout, typography, animations, SVG blueprint geometry, and responsive behavior.
 - Additive database migration `20261004_110000_about_page_content` creates and seeds only the new table with non-destructive rollback. Safe fallback (`resolveAboutPageContent`) ensures the page never renders blank if unconfigured.
 - Converted `src/app/(site)/about/page.tsx` to Server Component with `force-dynamic` and instant cache invalidation via `revalidatePath('/about')` on CMS save.
@@ -527,6 +541,14 @@ YYYY-MM-DD — Change title
 - Verified:
 - Notes:
 ```
+
+### 2026-10-05 - Batch editable page, navigation and footer text
+- Changed: Added Services, Awards & Sayembara, News, Contact and Site Settings text Globals; 102 original-copy fields with fallbacks and revalidation. Preserved markup/text-node boundaries, dynamic item sources, contact/social sources, fixed URLs and submitted form values. Grouped page Globals under KONTEN WEBSITE; collection labels/slugs remain intact.
+- Files/areas: cms/page-content.ts, lib/page-content.ts, lib/get-page-content.ts, four route files, AwardsView/ContactView, Header/Footer, SettingsContext/site layout, Payload config/types, admin labels, migrations, tests, docs/cms-text-batch-2026-10-05.md, both AGENTS.md files.
+- CMS/schema impact: Five new text-only tables. Existing collections, globals, media, users and provider settings unchanged.
+- Migration/env required: Additive migration 20261005_100000_page_text_content; no new env. Reruns and rollback preserve saved data. Local pending additive Homepage/About migrations also applied.
+- Verified: TypeScript, ESLint, 44 npm tests, 3 Services regressions, production build; all 102 field saves and permission checks; identical default render output; 390/1440px text/layout and admin-save QA.
+- Notes: No production writes during QA. Live R2 and deployed hosting remain unverified locally; the missing-S3 production upload guard is preserved. Detailed evidence/limits in the report. ESLint excludes ignored scratch .cache; original S3 admin import is retained.
 
 ### 2026-10-04 - About founder portrait follows the CMS Team record
 - Changed: Removed the fixed Unsplash portrait from the founder spotlight. Hero and grid now resolve the same active CMS Team member's portrait; missing photos use initials. Existing founder-name lookup is reused, independent of team ordering.
@@ -675,15 +697,7 @@ YYYY-MM-DD — Change title
 - Verified: `npm test` 19/19 tests passed; `content` & `cms-editorial` 17/17 tests passed; `gallery-render` 2/2 tests passed; `npm run typecheck` 0 errors; `npm run lint` 0 errors; `next build` 100% clean production build; Playwright browser evaluation verified computed `font-family` on `body`, `h1`, and `nav` resolves to `"Plus Jakarta Sans"`.
 - Notes: Satisfies user request: "fontnya ubah dong" with selected preference Plus Jakarta Sans for the entire website.
 
-### 2026-10-01 - Simpler Indonesian admin navigation and project forms
-- Changed: Five menu groups, Indonesian labels and guidance, official Indonesian UI translations with English available, translated role/inquiry/logo option labels, and three project form tabs with collapsed advanced controls.
-- Files/areas: `web-app/src/cms/admin-presentation.ts`, `web-app/src/cms/collections.ts`, `web-app/src/cms/editorial.ts`, `web-app/src/payload.config.ts`, `web-app/package.json`, `web-app/package-lock.json`, `AGENTS.md`.
-- CMS/schema impact: Presentation only; unnamed tabs/collapsible fields retain existing data paths, option values and server authorization rules.
-- Migration/env required: No. Install locked dependencies normally on deployment.
-- Verified: 44 automated tests (19 DB/access, 17 editorial, 4 startup, 2 gallery, 2 homepage) passed; TypeScript (`tsc --noEmit`) 0 errors, ESLint 0 errors (4 pre-existing migration warnings), Next.js production build (`next build`) 100% clean. Authenticated headless Chrome testing on an isolated database verified Indonesian UI labels, 3 project form tabs ('Informasi Utama', 'Foto & Galeri', 'Publikasi') at 1440px and 390px with zero JavaScript errors.
-- Notes: Existing local bootstrap credentials did not authenticate; QA uses a separate temporary account/database, not changes to studio accounts. This task simplifies implemented CMS screens and does not add the missing homepage/navigation globals.
-
-Earlier history consolidated: branding, media, CMS, typography and responsive work from September-October 2026 remains reflected in the current specification. Detailed older entries remain in git history.
+Earlier history consolidated: entries preceding the latest 20 remain available in git history. Current specifications preserve their implemented behavior.
 
 ## 21. REFERENCE PARITY NOTES
 
@@ -703,3 +717,13 @@ After a coding task, briefly report:
 5. confirmation that `AGENTS.md` was updated.
 
 If this file was not updated after a meaningful project change, the task is incomplete.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

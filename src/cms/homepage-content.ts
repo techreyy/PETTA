@@ -5,9 +5,9 @@ import { DEFAULT_HOMEPAGE_CONTENT } from '../lib/homepage-content';
 
 export const HomepageContent: GlobalConfig = {
   slug: 'homepageContent',
-  label: 'Homepage Content',
+  label: 'Beranda',
   admin: {
-    group: 'Konten Website',
+    group: 'KONTEN WEBSITE',
     description: 'Edit teks pengenalan studio di homepage. Simpan untuk menerbitkan perubahan; desain dan tautan tetap.',
   },
   access: { read: () => true, update: canPublish },

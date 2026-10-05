@@ -1,3 +1,4 @@
+import * as migration_20261005_100000_page_text_content from './20261005_100000_page_text_content';
 import * as migration_20261003_090000_team_roster from './20261003_090000_team_roster';
 import * as migration_20260927_084155_initial_cms from './20260927_084155_initial_cms';
 import * as migration_20260927_090000_contact_limits from './20260927_090000_contact_limits';
@@ -50,4 +51,5 @@ export const migrations = [
   { up: migration_20261003_100000_media_object_key.up, down: migration_20261003_100000_media_object_key.down, name: '20261003_100000_media_object_key' },
   { up: migration_20261004_100000_homepage_content.up, down: migration_20261004_100000_homepage_content.down, name: '20261004_100000_homepage_content' },
   { up: migration_20261004_110000_about_page_content.up, down: migration_20261004_110000_about_page_content.down, name: '20261004_110000_about_page_content' },
+  { up: migration_20261005_100000_page_text_content.up, down: migration_20261005_100000_page_text_content.down, name: '20261005_100000_page_text_content' },
 ];

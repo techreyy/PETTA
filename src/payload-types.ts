@@ -109,11 +109,21 @@ export interface Config {
     siteSettings: SiteSetting;
     homepageContent: HomepageContent;
     aboutPageContent: AboutPageContent;
+    servicesPageContent: ServicesPageContent;
+    awardsPageContent: AwardsPageContent;
+    newsPageContent: NewsPageContent;
+    contactPageContent: ContactPageContent;
+    siteTextContent: SiteTextContent;
   };
   globalsSelect: {
     siteSettings: SiteSettingsSelect<false> | SiteSettingsSelect<true>;
     homepageContent: HomepageContentSelect<false> | HomepageContentSelect<true>;
     aboutPageContent: AboutPageContentSelect<false> | AboutPageContentSelect<true>;
+    servicesPageContent: ServicesPageContentSelect<false> | ServicesPageContentSelect<true>;
+    awardsPageContent: AwardsPageContentSelect<false> | AwardsPageContentSelect<true>;
+    newsPageContent: NewsPageContentSelect<false> | NewsPageContentSelect<true>;
+    contactPageContent: ContactPageContentSelect<false> | ContactPageContentSelect<true>;
+    siteTextContent: SiteTextContentSelect<false> | SiteTextContentSelect<true>;
   };
   locale: null;
   widgets: {
@@ -979,6 +989,172 @@ export interface AboutPageContent {
   createdAt?: string | null;
 }
 /**
+ * Edit teks yang sudah tampil. Simpan untuk menerbitkan perubahan. Item, media, tautan dan profil kontak tetap memakai sumber existing.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "servicesPageContent".
+ */
+export interface ServicesPageContent {
+  id: number;
+  eyebrow: string;
+  heading: string;
+  intro: string;
+  emptyText: string;
+  ctaEyebrow: string;
+  ctaHeading: string;
+  ctaLabel: string;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Edit teks yang sudah tampil. Simpan untuk menerbitkan perubahan. Item, media, tautan dan profil kontak tetap memakai sumber existing.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "awardsPageContent".
+ */
+export interface AwardsPageContent {
+  id: number;
+  eyebrow: string;
+  heading: string;
+  intro: string;
+  allFilter: string;
+  awardsFilter: string;
+  competitionsFilter: string;
+  awardsHeading: string;
+  awardsCountLabel: string;
+  awardsEmptyText: string;
+  projectLabel: string;
+  competitionsHeading: string;
+  competitionsCountLabel: string;
+  competitionsEmptyText: string;
+  organizerLabel: string;
+  locationLabel: string;
+  designLabel: string;
+  publicCompetitionLabel: string;
+  ctaEyebrow: string;
+  ctaHeading: string;
+  ctaDescription: string;
+  projectsLabel: string;
+  ctaLabel: string;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Edit teks yang sudah tampil. Simpan untuk menerbitkan perubahan. Item, media, tautan dan profil kontak tetap memakai sumber existing.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "newsPageContent".
+ */
+export interface NewsPageContent {
+  id: number;
+  eyebrow: string;
+  heading: string;
+  intro: string;
+  articleLabel: string;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Edit teks yang sudah tampil. Simpan untuk menerbitkan perubahan. Item, media, tautan dan profil kontak tetap memakai sumber existing.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contactPageContent".
+ */
+export interface ContactPageContent {
+  id: number;
+  eyebrow: string;
+  /**
+   * Pertahankan token {name}, {founder}, atau {year} yang ada untuk memakai profil studio / tahun otomatis.
+   */
+  heading: string;
+  intro: string;
+  successHeading: string;
+  successDescription: string;
+  anotherInquiryLabel: string;
+  nameLabel: string;
+  emailLabel: string;
+  phoneLabel: string;
+  subjectLabel: string;
+  architectureOption: string;
+  interiorOption: string;
+  permitOption: string;
+  structureOption: string;
+  visualizationOption: string;
+  masterplanOption: string;
+  messageLabel: string;
+  officeHeading: string;
+  socialHeading: string;
+  instagramLabel: string;
+  instagramName: string;
+  founderLabel: string;
+  founderSocialName: string;
+  founderSocialDescription: string;
+  facebookLabel: string;
+  facebookName: string;
+  hoursHeading: string;
+  hoursText: string;
+  appointmentText: string;
+  namePlaceholder: string;
+  emailPlaceholder: string;
+  phonePlaceholder: string;
+  messagePlaceholder: string;
+  pendingLabel: string;
+  submitLabel: string;
+  saveError: string;
+  connectionError: string;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Edit teks yang sudah tampil. Simpan untuk menerbitkan perubahan. Item, media, tautan dan profil kontak tetap memakai sumber existing.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "siteTextContent".
+ */
+export interface SiteTextContent {
+  id: number;
+  navHome: string;
+  navProjects: string;
+  navServices: string;
+  navAwards: string;
+  navNews: string;
+  navAbout: string;
+  navContact: string;
+  navInquire: string;
+  navAllDisciplines: string;
+  navLocation: string;
+  navConversation: string;
+  /**
+   * Pertahankan token {name}, {founder}, atau {year} yang ada untuk memakai profil studio / tahun otomatis.
+   */
+  footerDescription: string;
+  footerExplore: string;
+  footerPortfolio: string;
+  footerPrivateHouse: string;
+  footerCommercial: string;
+  footerInterior: string;
+  footerServices: string;
+  footerAbout: string;
+  footerAwards: string;
+  footerGroup: string;
+  footerDesign: string;
+  footerConstruction: string;
+  footerPrintlab: string;
+  footerArchtech: string;
+  footerNetwork: string;
+  footerOffice: string;
+  /**
+   * Pertahankan token {name}, {founder}, atau {year} yang ada untuk memakai profil studio / tahun otomatis.
+   */
+  footerCopyright: string;
+  footerLocation: string;
+  footerInstagramLabel: string;
+  footerFounderInstagramLabel: string;
+  footerFacebookLabel: string;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "siteSettings_select".
  */
@@ -1076,6 +1252,153 @@ export interface AboutPageContentSelect<T extends boolean = true> {
   ctaHeading?: T;
   ctaText?: T;
   ctaButtonLabel?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "servicesPageContent_select".
+ */
+export interface ServicesPageContentSelect<T extends boolean = true> {
+  eyebrow?: T;
+  heading?: T;
+  intro?: T;
+  emptyText?: T;
+  ctaEyebrow?: T;
+  ctaHeading?: T;
+  ctaLabel?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "awardsPageContent_select".
+ */
+export interface AwardsPageContentSelect<T extends boolean = true> {
+  eyebrow?: T;
+  heading?: T;
+  intro?: T;
+  allFilter?: T;
+  awardsFilter?: T;
+  competitionsFilter?: T;
+  awardsHeading?: T;
+  awardsCountLabel?: T;
+  awardsEmptyText?: T;
+  projectLabel?: T;
+  competitionsHeading?: T;
+  competitionsCountLabel?: T;
+  competitionsEmptyText?: T;
+  organizerLabel?: T;
+  locationLabel?: T;
+  designLabel?: T;
+  publicCompetitionLabel?: T;
+  ctaEyebrow?: T;
+  ctaHeading?: T;
+  ctaDescription?: T;
+  projectsLabel?: T;
+  ctaLabel?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "newsPageContent_select".
+ */
+export interface NewsPageContentSelect<T extends boolean = true> {
+  eyebrow?: T;
+  heading?: T;
+  intro?: T;
+  articleLabel?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contactPageContent_select".
+ */
+export interface ContactPageContentSelect<T extends boolean = true> {
+  eyebrow?: T;
+  heading?: T;
+  intro?: T;
+  successHeading?: T;
+  successDescription?: T;
+  anotherInquiryLabel?: T;
+  nameLabel?: T;
+  emailLabel?: T;
+  phoneLabel?: T;
+  subjectLabel?: T;
+  architectureOption?: T;
+  interiorOption?: T;
+  permitOption?: T;
+  structureOption?: T;
+  visualizationOption?: T;
+  masterplanOption?: T;
+  messageLabel?: T;
+  officeHeading?: T;
+  socialHeading?: T;
+  instagramLabel?: T;
+  instagramName?: T;
+  founderLabel?: T;
+  founderSocialName?: T;
+  founderSocialDescription?: T;
+  facebookLabel?: T;
+  facebookName?: T;
+  hoursHeading?: T;
+  hoursText?: T;
+  appointmentText?: T;
+  namePlaceholder?: T;
+  emailPlaceholder?: T;
+  phonePlaceholder?: T;
+  messagePlaceholder?: T;
+  pendingLabel?: T;
+  submitLabel?: T;
+  saveError?: T;
+  connectionError?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "siteTextContent_select".
+ */
+export interface SiteTextContentSelect<T extends boolean = true> {
+  navHome?: T;
+  navProjects?: T;
+  navServices?: T;
+  navAwards?: T;
+  navNews?: T;
+  navAbout?: T;
+  navContact?: T;
+  navInquire?: T;
+  navAllDisciplines?: T;
+  navLocation?: T;
+  navConversation?: T;
+  footerDescription?: T;
+  footerExplore?: T;
+  footerPortfolio?: T;
+  footerPrivateHouse?: T;
+  footerCommercial?: T;
+  footerInterior?: T;
+  footerServices?: T;
+  footerAbout?: T;
+  footerAwards?: T;
+  footerGroup?: T;
+  footerDesign?: T;
+  footerConstruction?: T;
+  footerPrintlab?: T;
+  footerArchtech?: T;
+  footerNetwork?: T;
+  footerOffice?: T;
+  footerCopyright?: T;
+  footerLocation?: T;
+  footerInstagramLabel?: T;
+  footerFounderInstagramLabel?: T;
+  footerFacebookLabel?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
