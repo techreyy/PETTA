@@ -1,7 +1,7 @@
 # AGENTS.md — Architecture Portfolio Website
 
 > **ACTIVE PROJECT SOURCE OF TRUTH**  
-> Last updated: 2026-10-05
+> Last updated: 2026-10-10
 > Reference: https://atelierriri.com/  
 > Goal: build a premium architecture website with comparable UX/features and original branding/assets/code.
 
@@ -380,6 +380,8 @@ Mandatory:
 
 ## 14. SEO + ACCESSIBILITY
 
+Google Search Console: public/googlebba6c20afe5e3a30.html serves the owner-supplied verification token at /googlebba6c20afe5e3a30.html after deployment. Keep this file available after verification. Verification does not guarantee immediate indexing.
+
 SEO:
 - clean slugs
 - unique title/description
@@ -473,7 +475,10 @@ Overall: CORE WEBSITE IMPLEMENTED; CMS PARITY AND PRODUCTION PERFORMANCE AUDIT R
 
 Only change `[ ]` to `[x]` after verification.
 
-Latest update (2026-10-05, CMS text batch):
+Latest update (2026-10-10):
+- Added the supplied Google Search Console verification file under public; token verified against the source. No UI, CMS, schema or environment changes. Owner authorized deployment through origin/main on 2026-10-10; public endpoint verification remains pending. npm unavailable for local HTTP check.
+
+Previous update (2026-10-05, CMS text batch):
 - Added five text-only Globals with 102 existing-copy defaults, safe field/query fallbacks, request-scoped reads and route/layout revalidation. Services, Awards, News, Contact, navigation and footer now expose their existing editorial text.
 - Kept Profil & Kontak Studio on siteSettings; new Site Settings uses siteTextContent. Existing item collections, media, auth, routes, providers and production records are unchanged. Admin Globals use KONTEN WEBSITE; content collections use Koleksi Konten with unchanged labels/slugs.
 - Additive Payload migration 20261005_100000_page_text_content creates/seeds only five new tables, preserves edits on rerun and retains data on rollback. No new environment variables.
@@ -541,6 +546,14 @@ YYYY-MM-DD — Change title
 - Verified:
 - Notes:
 ```
+
+### 2026-10-10 - Google Search Console verification file
+- Changed: Added the supplied Google verification token as a public static HTML file.
+- Files/areas: public/googlebba6c20afe5e3a30.html and both AGENTS.md files.
+- CMS/schema impact: None; website UI and application code unchanged.
+- Migration/env required: No.
+- Verified: Public file token matches the supplied source; git diff --check passed.
+- Notes: Owner authorized GitHub/Hostinger deployment on 2026-10-10. Google verification remains a separate Search Console action. Local HTTP check could not run because npm is unavailable in this shell; lint/type/build not rerun for this static-file-only addition.
 
 ### 2026-10-05 - Batch editable page, navigation and footer text
 - Changed: Added Services, Awards & Sayembara, News, Contact and Site Settings text Globals; 102 original-copy fields with fallbacks and revalidation. Preserved markup/text-node boundaries, dynamic item sources, contact/social sources, fixed URLs and submitted form values. Grouped page Globals under KONTEN WEBSITE; collection labels/slugs remain intact.
@@ -688,14 +701,6 @@ YYYY-MM-DD — Change title
 - Migration/env required: No. Existing production S3 and email limitations documented in README.
 - Verified: 59 automated checks passed; TypeScript, ESLint and production build passed. Chrome verified desktop/mobile admin and browser create/publish/reload against a disposable database. The final public sweep passed nine routes at 320/390/768/1024/1440/1920px (including landscape tablet), DM Sans computed styles, carousel pause/selection, reduced-motion emulation and missing-project 404, with no JS errors or horizontal overflow. Earlier eight-route resource checks at 390/768/1440px found no failed HTTP resources.
 - Notes: This is a local demo audit, not confirmation of full CMS parity or production field performance. Existing studio accounts/content were not modified by QA.
-
-### 2026-10-01 - Plus Jakarta Sans site-wide typography upgrade
-- Changed: Replaced Manrope with Plus Jakarta Sans across all public pages (Headings, Body, and Navigation). Mapped `--font-sans` and `--font-jakarta` in Tailwind CSS inline theme and CSS variables to `var(--font-plus-jakarta)`. Preserved Cormorant Garamond for editorial serif accents.
-- Files/areas: `web-app/src/app/(site)/layout.tsx`, `web-app/src/app/globals.css`, `AGENTS.md`.
-- CMS/schema impact: None (visual/typography upgrade).
-- Migration/env required: No.
-- Verified: `npm test` 19/19 tests passed; `content` & `cms-editorial` 17/17 tests passed; `gallery-render` 2/2 tests passed; `npm run typecheck` 0 errors; `npm run lint` 0 errors; `next build` 100% clean production build; Playwright browser evaluation verified computed `font-family` on `body`, `h1`, and `nav` resolves to `"Plus Jakarta Sans"`.
-- Notes: Satisfies user request: "fontnya ubah dong" with selected preference Plus Jakarta Sans for the entire website.
 
 Earlier history consolidated: entries preceding the latest 20 remain available in git history. Current specifications preserve their implemented behavior.
 
